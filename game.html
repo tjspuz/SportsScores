@@ -393,22 +393,64 @@
         }
 
         /* Widget Grid */
+        /* MODERN FLEXIBLE GRID SYSTEM */
         .widgets-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(12, 1fr); /* 12-column grid for flexibility */
+            gap: 20px;
             margin-bottom: 32px;
+            align-items: start;
         }
 
+        /* Default widget spans */
         .widget {
+            grid-column: span 6; /* Default: 2 widgets per row (half width) */
             background: var(--bg-card);
             border-radius: 16px;
             padding: 24px;
             border: 2px solid var(--border-color);
             box-shadow: var(--shadow-md);
-            cursor: move;
             transition: all var(--transition-speed);
             animation: fadeIn 0.4s ease-out;
+            position: relative;
+            min-height: 200px;
+        }
+
+        /* Chart widgets get full width for better visibility */
+        .widget[data-widget="winprob"] {
+            grid-column: span 12; /* Full width for charts */
+        }
+
+        /* Box score tables get more flexible sizing */
+        .widget.table-card {
+            grid-column: span 6; /* Half width by default */
+            min-width: 0; /* Allow shrinking */
+        }
+
+        /* Hover effects */
+        .widget:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 8px 24px rgba(0, 217, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .widget.sortable-ghost {
+            opacity: 0.3;
+            transform: scale(0.95);
+        }
+
+        /* Responsive behavior */
+        @media (max-width: 1400px) {
+            .widget {
+                grid-column: span 12; /* Stack on smaller screens */
+            }
+        }
+
+        @media (min-width: 1400px) {
+            /* Allow 3-column layout on very large screens */
+            .widget[data-widget="stats"] {
+                grid-column: span 6;
+            }
         }
 
         /* FIX #4: Widget Minimized State - Proportional Scaling */
@@ -457,27 +499,213 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* UPDATE #2: Make Everything Draggable */
-        .matchup-header,
-        .widget,
-        .table-card {
-            position: relative;
+        /* PRODUCTION ENHANCEMENT: Point Ghost Animation */
+        @keyframes ghostFloat {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+            100% { transform: translateY(-60px) scale(1); opacity: 0; }
         }
 
+        .score-ghost {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Space Mono', monospace;
+            font-weight: 900;
+            font-size: 2rem;
+            color: var(--team-color);
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+            animation: ghostFloat 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            z-index: 100;
+        }
+
+        /* PRODUCTION ENHANCEMENT: Glassmorphism for modern depth - THEME AWARE */
+        .widget {
+            background: color-mix(in srgb, var(--bg-card) 85%, transparent) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent) !important;
+        }
+
+        .matchup-header {
+            background: color-mix(in srgb, var(--bg-secondary) 90%, transparent) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        nav {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        /* PRODUCTION ENHANCEMENT: Enhanced Live Pulse */
+        .game-status.live {
+            box-shadow: 0 0 15px rgba(255, 59, 59, 0.3);
+            border: 1px solid var(--live-color);
+            background: rgba(255, 59, 59, 0.08);
+            animation: border-glow 2s infinite alternate;
+        }
+
+        @keyframes border-glow {
+            from { box-shadow: 0 0 10px rgba(255, 59, 59, 0.2); }
+            to { box-shadow: 0 0 25px rgba(255, 59, 59, 0.5); }
+        }
+
+        .live-indicator {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* PRODUCTION ENHANCEMENT: Container Queries for responsive widgets */
+        .widget {
+            container-type: inline-size;
+            container-name: widget;
+        }
+
+        /* Widget adapts internally based on its own width */
+        @container widget (min-width: 800px) {
+            .table-wrapper table {
+                font-size: 1rem;
+            }
+            
+            .stat-row {
+                display: grid;
+                grid-template-columns: 1fr 2fr 1fr;
+                align-items: center;
+            }
+            
+            .bar-container {
+                margin-top: 0;
+            }
+        }
+
+        @container widget (max-width: 400px) {
+            .widget-header h3 {
+                font-size: 0.9rem;
+            }
+            
+            .player-info {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* PRODUCTION ENHANCEMENT: Skeleton Loader */
+        .skeleton-loader {
+            background: linear-gradient(
+                90deg,
+                var(--bg-card) 25%,
+                var(--border-color) 50%,
+                var(--bg-card) 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 20px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-widget {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            min-height: 200px;
+        }
+
+        .skeleton-header {
+            height: 24px;
+            width: 60%;
+            margin-bottom: 20px;
+        }
+
+        .skeleton-content {
+            height: 150px;
+            width: 100%;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* MODERN DRAG & RESIZE SYSTEM */
         .drag-handle {
-            opacity: 0.3;
-            transition: opacity 0.2s;
+            color: var(--text-tertiary);
+            font-size: 1.1rem;
+            padding: 4px 8px;
             cursor: grab;
             user-select: none;
+            transition: all 0.2s;
+            border-radius: 4px;
         }
 
         .drag-handle:hover {
-            opacity: 1;
+            background: var(--border-color);
+            color: var(--accent-primary);
         }
 
         .drag-handle:active {
             cursor: grabbing;
+            transform: scale(1.1);
         }
+
+        /* Widget controls */
+        .widget-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Resize buttons for dynamic width control */
+        .resize-btns {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .widget:hover .resize-btns {
+            opacity: 1;
+        }
+
+        .resize-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .resize-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .resize-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        /* Width control classes */
+        .widget.width-full { grid-column: span 12 !important; }
+        .widget.width-half { grid-column: span 6 !important; }
+        .widget.width-third { grid-column: span 4 !important; }
 
         .sortable-ghost {
             opacity: 0.4;
@@ -487,20 +715,8 @@
             opacity: 0.8;
         }
 
-        /* UPDATE #2: Resizable Box Scores */
-        .table-card {
-            resize: horizontal;
-            overflow: auto;
-            min-width: 300px;
-            max-width: 100%;
-        }
-
-        .boxscore-section {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
+        /* Hover effects handled in main widget section above */
+        
         .widget:hover {
             border-color: var(--border-hover);
             box-shadow: var(--shadow-lg);
@@ -569,8 +785,18 @@
         /* Chart Widget */
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 350px;
             width: 100%;
+            min-height: 250px;
+        }
+
+        /* Ensure charts render properly in all widths */
+        .widget.width-full .chart-container {
+            height: 400px;
+        }
+
+        .widget.width-half .chart-container {
+            height: 300px;
         }
 
         .chart-legend {
@@ -724,8 +950,10 @@
             overflow: hidden;
             box-shadow: var(--shadow-md);
             transition: all 0.3s ease;
-        }
             animation: fadeIn 0.6s ease-out;
+            /* UPDATE: Make table cards fit in grid like other widgets */
+            min-width: 300px;
+            cursor: move;
         }
 
         .table-header {
@@ -820,6 +1048,15 @@
             font-weight: 600;
         }
 
+        /* THEME FIX: Ensure table rows have correct background in both modes */
+        tbody tr {
+            background: var(--bg-card);
+        }
+
+        tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
         td:first-child {
             text-align: left;
             position: sticky;
@@ -828,10 +1065,6 @@
             z-index: 9;
             border-right: 1px solid var(--border-color);
             padding: 10px 12px;
-        }
-
-        tbody tr:hover {
-            background: var(--bg-secondary);
         }
 
         tbody tr:last-child td {
@@ -1043,9 +1276,24 @@
 
     <div class="container">
         <div id="content">
+            <!-- ENHANCEMENT: Skeleton Loading Screen -->
             <div class="loading">
-                <div class="spinner"></div>
-                <div>Loading game data...</div>
+                <div class="skeleton-widget">
+                    <div class="skeleton-loader skeleton-header"></div>
+                    <div class="skeleton-loader" style="width: 80%;"></div>
+                    <div class="skeleton-loader" style="width: 90%;"></div>
+                    <div class="skeleton-loader skeleton-content"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+                    <div class="skeleton-widget">
+                        <div class="skeleton-loader skeleton-header"></div>
+                        <div class="skeleton-loader skeleton-content"></div>
+                    </div>
+                    <div class="skeleton-widget">
+                        <div class="skeleton-loader skeleton-header"></div>
+                        <div class="skeleton-loader skeleton-content"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1121,6 +1369,27 @@
             if (widget) {
                 widget.classList.toggle('minimized');
                 btn.innerHTML = widget.classList.contains('minimized') ? '+' : '−';
+            }
+        };
+
+        // MODERN: Resize Widget Function
+        window.resizeWidget = function(btn, size) {
+            const widget = btn.closest('.widget');
+            const resizeBtns = btn.parentElement.querySelectorAll('.resize-btn');
+            
+            if (widget) {
+                // Remove all width classes
+                widget.classList.remove('width-full', 'width-half', 'width-third');
+                
+                // Add new width class
+                widget.classList.add(`width-${size}`);
+                
+                // Update button states
+                resizeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // ENHANCEMENT: Save entire layout including sizes
+                saveLayout();
             }
         };
 
@@ -1264,11 +1533,26 @@
             const awayScore = isPre ? '-' : (away.score || '0');
             const isLive = header.status.type.state === 'in';
 
-            // Update scores in header
+            // ENHANCEMENT: Point Ghost Animation - Update scores in header with animation
             const scoreElements = document.querySelectorAll('.scores span');
-            if (scoreElements.length >= 2) {
+            if (scoreElements.length >= 3) {
+                // AWAY TEAM CHECK
+                const oldAway = parseInt(scoreElements[0].textContent) || 0;
+                const newAway = parseInt(awayScore) || 0;
+                if (newAway > oldAway && !isPre) {
+                    const awayColor = '#' + (away.team.color || 'ff006e');
+                    triggerScorePop(scoreElements[0], newAway - oldAway, awayColor);
+                }
                 if (scoreElements[0].textContent !== awayScore) {
                     scoreElements[0].textContent = awayScore;
+                }
+                
+                // HOME TEAM CHECK
+                const oldHome = parseInt(scoreElements[2].textContent) || 0;
+                const newHome = parseInt(homeScore) || 0;
+                if (newHome > oldHome && !isPre) {
+                    const homeColor = '#' + (home.team.color || '00d9ff');
+                    triggerScorePop(scoreElements[2], newHome - oldHome, homeColor);
                 }
                 if (scoreElements[2].textContent !== homeScore) {
                     scoreElements[2].textContent = homeScore;
@@ -1302,6 +1586,27 @@
                 const awayColor = '#' + (away.team.color || 'ff006e');
                 updateComparison(data.boxscore.teams, homeColor, awayColor);
             }
+        }
+
+        // ENHANCEMENT: Point Ghost Animation Function
+        function triggerScorePop(element, diff, color) {
+            const ghost = document.createElement('div');
+            ghost.className = 'score-ghost';
+            ghost.style.setProperty('--team-color', color);
+            ghost.innerText = `+${diff}`;
+            
+            // Append to the parent container (score-display) for proper positioning
+            const container = element.closest('.score-display') || element.parentElement;
+            container.style.position = 'relative'; // Ensure positioning context
+            container.appendChild(ghost);
+            
+            // Optional: Haptic feedback for mobile
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(20);
+            }
+            
+            // Clean up DOM after animation completes
+            setTimeout(() => ghost.remove(), 1200);
         }
 
         // Update line scores in-place
@@ -1530,10 +1835,14 @@
 
                 <div class="widgets-grid" id="widgets-grid">
                     <!-- Win Probability Widget -->
-                    <div class="widget" data-widget="winprob">
+                    <div class="widget width-full" data-widget="winprob">
                         <div class="widget-header">
                             <h3 class="widget-title">Win Probability</h3>
                             <div class="widget-controls">
+                                <div class="resize-btns">
+                                    <span class="resize-btn" onclick="resizeWidget(this, 'full')" title="Full Width">▭</span>
+                                    <span class="resize-btn" onclick="resizeWidget(this, 'half')" title="Half Width">▯</span>
+                                </div>
                                 <span class="min-btn" onclick="toggleWidget(this)">−</span>
                                 <span class="drag-handle">⋮⋮</span>
                             </div>
@@ -1542,19 +1851,23 @@
                     </div>
 
                     <!-- Team Stats Widget -->
-                    <div class="widget" data-widget="stats">
+                    <div class="widget width-half" data-widget="stats">
                         <div class="widget-header">
                             <h3 class="widget-title">Team Comparison</h3>
                             <div class="widget-controls">
+                                <div class="resize-btns">
+                                    <span class="resize-btn" onclick="resizeWidget(this, 'full')" title="Full Width">▭</span>
+                                    <span class="resize-btn active" onclick="resizeWidget(this, 'half')" title="Half Width">▯</span>
+                                </div>
                                 <span class="min-btn" onclick="toggleWidget(this)">−</span>
                                 <span class="drag-handle">⋮⋮</span>
                             </div>
                         </div>
                         <div class="widget-content" id="comparison-stats"></div>
                     </div>
+                    
+                    <!-- Box scores will be added here dynamically -->
                 </div>
-
-                <div class="boxscore-section" id="boxscores"></div>
             `;
 
             document.getElementById('content').innerHTML = html;
@@ -1576,11 +1889,11 @@
                 renderComparison(data.boxscore.teams, homeColor, awayColor);
             }
 
-            // Render Box Scores
+            // Render Box Scores - ADD TO WIDGETS GRID
             if (data.boxscore && data.boxscore.players) {
-                const boxContainer = document.getElementById('boxscores');
+                const widgetsGrid = document.getElementById('widgets-grid');
                 data.boxscore.players.forEach(teamData => {
-                    boxContainer.innerHTML += renderBoxScore(teamData);
+                    widgetsGrid.innerHTML += renderBoxScore(teamData);
                 });
             }
             
@@ -1899,15 +2212,22 @@
             `;
 
             return `
-                <div class="table-card">
-                    <div class="table-header" style="border-bottom-color: ${teamColor}">
+                <div class="table-card widget width-half" data-widget="boxscore-${team.id}">
+                    <div class="table-header widget-header" style="border-bottom-color: ${teamColor}">
                         <div class="table-header-left">
                             <img src="${logo}" class="table-team-logo">
                             <div class="table-team-name" style="color: ${teamColor}">${team.displayName}</div>
                         </div>
-                        <span class="table-minimize-btn" onclick="toggleBoxScore(this)">−</span>
+                        <div class="widget-controls">
+                            <div class="resize-btns">
+                                <span class="resize-btn" onclick="resizeWidget(this, 'full')" title="Full Width">▭</span>
+                                <span class="resize-btn active" onclick="resizeWidget(this, 'half')" title="Half Width">▯</span>
+                            </div>
+                            <span class="table-minimize-btn" onclick="toggleBoxScore(this)">−</span>
+                            <span class="drag-handle">⋮⋮</span>
+                        </div>
                     </div>
-                    <div class="table-wrapper">
+                    <div class="table-wrapper widget-content">
                         <table>
                             <thead>
                                 <tr>
@@ -1923,42 +2243,95 @@
             `;
         }
 
-        // Drag and Drop Functionality - UPDATE #2: All elements draggable
+        // Drag and Drop Functionality - UPDATE: All elements in one unified grid
+        // ENHANCEMENT: Drag and Drop with localStorage Persistence
         function initializeDragAndDrop() {
             const grid = document.getElementById('widgets-grid');
-            const boxscores = document.getElementById('boxscores');
             
             if (grid) {
-                // Make widgets draggable
+                // Load saved layout first
+                loadSavedLayout();
+                
+                // Make all widgets draggable (including box scores)
                 Sortable.create(grid, {
                     animation: 150,
                     handle: '.drag-handle',
                     ghostClass: 'sortable-ghost',
-                    dragClass: 'sortable-drag'
+                    dragClass: 'sortable-drag',
+                    forceFallback: true,
+                    fallbackTolerance: 3,
+                    onEnd: function() {
+                        saveLayout();
+                    }
                 });
             }
+        }
+
+        // ENHANCEMENT: Save widget order and sizes to localStorage
+        function saveLayout() {
+            const grid = document.getElementById('widgets-grid');
+            if (!grid) return;
             
-            if (boxscores) {
-                // Make box scores draggable and resizable
-                Sortable.create(boxscores, {
-                    animation: 150,
-                    handle: '.table-header',
-                    ghostClass: 'sortable-ghost',
-                    dragClass: 'sortable-drag'
+            const order = Array.from(grid.querySelectorAll('.widget')).map(widget => {
+                return {
+                    id: widget.getAttribute('data-widget'),
+                    width: widget.classList.contains('width-full') ? 'full' : 
+                           widget.classList.contains('width-third') ? 'third' : 'half'
+                };
+            });
+            
+            localStorage.setItem(`layout-${gameId}`, JSON.stringify(order));
+            console.log('✅ Layout saved:', order);
+        }
+
+        // ENHANCEMENT: Load saved widget layout
+        function loadSavedLayout() {
+            const grid = document.getElementById('widgets-grid');
+            if (!grid) return;
+            
+            const saved = localStorage.getItem(`layout-${gameId}`);
+            if (!saved) return;
+            
+            try {
+                const order = JSON.parse(saved);
+                console.log('📦 Loading saved layout:', order);
+                
+                // Reorder widgets based on saved order
+                order.forEach((item, index) => {
+                    const widget = grid.querySelector(`[data-widget="${item.id}"]`);
+                    if (widget) {
+                        // Restore width
+                        widget.classList.remove('width-full', 'width-half', 'width-third');
+                        widget.classList.add(`width-${item.width}`);
+                        
+                        // Update resize button states
+                        const resizeBtns = widget.querySelectorAll('.resize-btn');
+                        resizeBtns.forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.getAttribute('onclick').includes(item.width)) {
+                                btn.classList.add('active');
+                            }
+                        });
+                        
+                        // Move to correct position
+                        grid.appendChild(widget);
+                    }
                 });
+            } catch (e) {
+                console.error('Failed to load layout:', e);
             }
         }
 
         function saveWidgetOrder() {
-            // Keeping for compatibility
+            // Deprecated - using saveLayout() now
         }
 
         function reorderWidgets() {
-            // Keeping for compatibility
+            // Deprecated - using loadSavedLayout() now
         }
 
         // Reset Layout
-        document.getElementById('reset-layout').addEventListener('click', () => {
+        document.getElementById('reset-layout')?.addEventListener('click', () => {
             localStorage.removeItem('widgetOrder');
             widgetOrder = [];
             if (gameData) {
