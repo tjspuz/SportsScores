@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sports Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-tertiary: #666666;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #ff006e;
+            --live-color: #ff3b3b;
+            --border-color: #2a2a2a;
+            --border-hover: #3a3a3a;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --transition-speed: 0.2s;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #0a0a0a;
+            --text-secondary: #4a4a4a;
+            --text-tertiary: #8a8a8a;
+            --accent-primary: #0066cc;
+            --accent-secondary: #e91e63;
+            --live-color: #d32f2f;
+            --border-color: #e0e0e0;
+            --border-hover: #c0c0c0;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        /* FIX #6: Fullscreen mode */
+        body.fullscreen header {
+            transform: translateY(-100%);
+        }
+
+        .fullscreen-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            z-index: 200;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .fullscreen-toggle:hover {
+            background: var(--accent-primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .header-content {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        /* FIX #1: Collapsible Header */
+        .header-content {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        header.collapsed {
+            padding: 8px 0;
+        }
+
+        header.collapsed .header-content {
+            padding: 8px 24px;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header.collapsed .controls,
+        header.collapsed .live-badge {
+            display: none !important;
+        }
+
+        header.collapsed h1 {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        header.collapsed .logo-section {
+            gap: 10px;
+        }
+
+        .header-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            z-index: 101;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        header.collapsed .header-toggle {
+            top: 50%;
+            transform: translateY(-50%);
+            right: 24px;
+        }
+
+        .header-toggle:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+            transform: scale(1.1);
+        }
+
+        header.collapsed .header-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .live-badge {
+            background: var(--live-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* NEW: Update Pill */
+        .update-pill {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .update-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--live-color);
+            border-radius: 50%;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .theme-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition-speed);
+        }
+
+        .toggle-container:not(.disabled):hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .toggle-container.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 12px;
+            transition: background var(--transition-speed);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-speed);
+        }
+
+        input[type="checkbox"]:checked + .toggle-switch {
+            background: var(--accent-primary);
+        }
+
+        input[type="checkbox"]:checked + .toggle-switch::after {
+            transform: translateX(20px);
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Select Dropdown */
+        select {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            outline: none;
+            transition: all var(--transition-speed);
+            min-width: 180px;
+        }
+
+        select:hover {
+            border-color: var(--border-hover);
+        }
+
+        select:focus {
+            border-color: var(--accent-primary);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            color: var(--text-secondary);
+        }
+
+        .filter-chip:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .filter-chip.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        /* Scoreboard Grid */
+        #scoreboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Match Card */
+        .match-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity var(--transition-speed);
+        }
+
+        .match-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .match-card:hover::before {
+            opacity: 1;
+        }
+
+        .match-card.live {
+            border-color: var(--live-color);
+        }
+
+        .match-card.live::before {
+            opacity: 1;
+            background: var(--live-color);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .live-indicator {
+            color: var(--live-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--live-color);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        .game-time {
+            color: var(--text-tertiary);
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Team Row */
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all var(--transition-speed);
+        }
+
+        .team-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .team-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .team-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .team-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-badge {
+            font-size: 0.7rem;
+            color: white;
+            background: var(--text-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            min-width: 18px;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .rank-badge.top-5 {
+            background: linear-gradient(135deg, #ffd700, #ffb000);
+            color: #000;
+        }
+
+        .rank-badge.top-10 {
+            background: linear-gradient(135deg, #c0c0c0, #909090);
+            color: #000;
+        }
+
+        .team-record {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .team-score {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            font-family: 'Space Mono', monospace;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .winner .team-score {
+            color: var(--accent-primary);
+        }
+
+        .loser .team-name,
+        .loser .team-score {
+            color: var(--text-tertiary);
+            opacity: 0.6;
+        }
+
+        /* Loading State */
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767px) {
+            .header-content {
+                padding: 16px 20px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            #scoreboard {
+                grid-template-columns: 1fr;
+            }
+
+            .team-score {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Portrait Mode Optimization (for 43" TV) */
+        @media (orientation: portrait) and (min-height: 1000px) {
+            body {
+                font-size: 18px;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            #scoreboard {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .match-card {
+                padding: 28px;
+            }
+
+            .team-logo {
+                width: 48px;
+                height: 48px;
+            }
+
+            .team-name {
+                font-size: 1.4rem;
+            }
+
+            .team-score {
+                font-size: 2.4rem;
+            }
+        }
+
+        /* UPDATE #1: Settings Panel */
+        .settings-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .settings-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-overlay.active {
+            display: flex;
+        }
+
+        .settings-panel {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .settings-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .settings-close {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .settings-close:hover {
+            background: var(--live-color);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .settings-group {
+            margin-bottom: 24px;
+        }
+
+        .settings-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .settings-group select,
+        .settings-group input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Outfit';
+            font-size: 1rem;
+        }
+
+        .settings-group input[type="range"] {
+            padding: 0;
+            height: 40px;
+        }
+
+        .range-value {
+            display: inline-block;
+            background: var(--accent-primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            margin-left: 12px;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .theme-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .theme-option {
+            padding: 16px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .theme-option:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .theme-option.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .theme-option-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .theme-option-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- FIX #6: Fullscreen Toggle Button -->
+    <button class="fullscreen-toggle" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+    
+    <header id="main-header">
+        <button class="header-toggle" onclick="toggleMainHeader()">▲</button>
+        <div class="header-content">
+            <div class="logo-section">
+                <h1>LIVE SPORTS</h1>
+                <span class="live-badge">LIVE</span>
+            </div>
+            <div class="controls">
+                <div class="update-pill">
+                    <div class="update-dot blink"></div>
+                    <span id="last-updated">Updating...</span>
+                </div>
+
+                <button class="settings-btn" onclick="openSettings()">
+                    <span>⚙️</span>
+                </button>
+
+                <select id="conference-filter">
+                    <option value="all">All Teams</option>
+                    <option value="top25">Top 25</option>
+                    <option value="ncaa-d1">NCAA Div 1</option>
+                    <option value="big12">Big 12</option>
+                    <option value="big10">Big Ten</option>
+                    <option value="sec">SEC</option>
+                    <option value="acc">ACC</option>
+                    <option value="bigeast">Big East</option>
+                </select>
+
+                <select id="sport-select">
+                    <option value="basketball/mens-college-basketball">🏀 NCAA Men's BB</option>
+                    <option value="basketball/womens-college-basketball">🏀 NCAA Women's BB</option>
+                    <option value="basketball/nba">🏀 NBA</option>
+                    <option value="football/nfl">🏈 NFL</option>
+                    <option value="baseball/mlb">⚾ MLB</option>
+                    <option value="hockey/nhl">🏒 NHL</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- UPDATE #1: Settings Panel -->
+    <div class="settings-overlay" id="settings-overlay" onclick="closeSettingsOnOverlay(event)">
+        <div class="settings-panel" onclick="event.stopPropagation()">
+            <div class="settings-header">
+                <h2>⚙️ Settings</h2>
+                <button class="settings-close" onclick="closeSettings()">✕</button>
+            </div>
+
+            <div class="settings-group">
+                <label>Grid Columns</label>
+                <input type="range" id="grid-columns" min="1" max="6" value="0" oninput="updateGridColumns(this.value)">
+                <span class="range-value" id="columns-value">Auto</span>
+                <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 8px;">
+                    Auto adjusts based on screen size. Manual sets fixed columns.
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label>Theme</label>
+                <div class="theme-options">
+                    <div class="theme-option active" onclick="setTheme('dark')" data-theme="dark">
+                        <div class="theme-option-icon">🌙</div>
+                        <div class="theme-option-label">Dark</div>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('light')" data-theme="light">
+                        <div class="theme-option-icon">☀️</div>
+                        <div class="theme-option-label">Light</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="scoreboard">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Loading scores...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = "https://site.api.espn.com/apis/site/v2/sports/";
+        const REFRESH_RATE = 10000; // FIX #1: 10 seconds auto-refresh
+        
+        const sportSelect = document.getElementById('sport-select');
+        const conferenceFilter = document.getElementById('conference-filter');
+        const scoreboard = document.getElementById('scoreboard');
+
+        let currentEvents = [];
+        let refreshInterval;
+
+        // FIX #1: Toggle Header Function
+        function toggleMainHeader() {
+            const header = document.getElementById('main-header');
+            const btn = header.querySelector('.header-toggle');
+            header.classList.toggle('collapsed');
+            btn.innerHTML = header.classList.contains('collapsed') ? '▼' : '▲';
+        }
+
+        // FIX #6: Fullscreen Toggle
+        function toggleFullscreen() {
+            document.body.classList.toggle('fullscreen');
+        }
+
+        // UPDATE #1: Settings Panel Functions
+        function openSettings() {
+            document.getElementById('settings-overlay').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-overlay').classList.remove('active');
+        }
+
+        function closeSettingsOnOverlay(event) {
+            if (event.target.id === 'settings-overlay') {
+                closeSettings();
+            }
+        }
+
+        function updateGridColumns(value) {
+            const scoreboard = document.getElementById('scoreboard');
+            const valueDisplay = document.getElementById('columns-value');
+            
+            if (value == 0) {
+                // Auto mode
+                scoreboard.style.gridTemplateColumns = 'repeat(auto-fill, minmax(340px, 1fr))';
+                valueDisplay.textContent = 'Auto';
+            } else {
+                // Fixed columns
+                scoreboard.style.gridTemplateColumns = `repeat(${value}, 1fr)`;
+                valueDisplay.textContent = value;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('gridColumns', value);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            // Update active state
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                if (opt.dataset.theme === theme) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize
+        loadTheme();
+        loadGridSettings();
+        handleSportChange();
+
+        // Event Listeners
+        sportSelect.addEventListener('change', handleSportChange);
+        conferenceFilter.addEventListener('change', renderGames);
+
+        // Theme Management
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+        }
+
+        // UPDATE #1: Load Grid Settings
+        function loadGridSettings() {
+            const savedColumns = localStorage.getItem('gridColumns') || '0';
+            const slider = document.getElementById('grid-columns');
+            slider.value = savedColumns;
+            updateGridColumns(savedColumns);
+        }
+
+        // Sport Change Handler
+        function handleSportChange() {
+            const sport = sportSelect.value;
+
+            scoreboard.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Loading ${sport.split('/').pop().replace('-', ' ')} scores...</div>
+                </div>
+            `;
+            
+            currentEvents = [];
+            
+            // Clear existing interval
+            if (refreshInterval) clearInterval(refreshInterval);
+            
+            // Fetch initial data
+            fetchScores(sport);
+            
+            // Set up auto-refresh
+            refreshInterval = setInterval(() => {
+                fetchScores(sport, true);
+            }, REFRESH_RATE);
+        }
+
+        // Fetch Scores
+        async function fetchScores(sportPath, silent = false) {
+            try {
+                // NEW: Update status indicator
+                const lastUpdatedEl = document.getElementById('last-updated');
+                if (!silent && lastUpdatedEl) lastUpdatedEl.innerText = "Fetching...";
+
+                const response = await fetch(`${BASE_URL}${sportPath}/scoreboard`);
+                const data = await response.json();
+                currentEvents = data.events || [];
+                renderGames(silent);
+
+                // NEW: Update timestamp
+                if (lastUpdatedEl) {
+                    const now = new Date();
+                    lastUpdatedEl.innerText = `Updated ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
+                }
+            } catch (error) {
+                console.error("Error fetching scores:", error);
+                if (!silent) {
+                    scoreboard.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div class="empty-state-title">Connection Error</div>
+                            <div class="empty-state-text">Unable to fetch scores. Please check your connection.</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Render Games
+        function renderGames(silent = false) {
+            const filter = conferenceFilter.value;
+            const currentSport = sportSelect.value;
+            
+            // FIX #2: Conference mapping
+            const conferenceMap = {
+                'big12': ['Kansas', 'Baylor', 'Texas Tech', 'Iowa State', 'Kansas State', 'TCU', 'Oklahoma State', 'West Virginia', 'BYU', 'Cincinnati', 'UCF', 'Houston'],
+                'big10': ['Michigan', 'Ohio State', 'Penn State', 'Michigan State', 'Wisconsin', 'Iowa', 'Indiana', 'Purdue', 'Illinois', 'Minnesota', 'Nebraska', 'Northwestern', 'Maryland', 'Rutgers'],
+                'sec': ['Alabama', 'Auburn', 'Arkansas', 'Florida', 'Georgia', 'Kentucky', 'LSU', 'Ole Miss', 'Mississippi State', 'Missouri', 'South Carolina', 'Tennessee', 'Texas A&M', 'Vanderbilt'],
+                'acc': ['Duke', 'North Carolina', 'Virginia', 'Virginia Tech', 'Clemson', 'Florida State', 'Miami', 'NC State', 'Wake Forest', 'Louisville', 'Syracuse', 'Pittsburgh', 'Boston College', 'Georgia Tech'],
+                'bigeast': ['Villanova', 'UConn', 'Creighton', 'Xavier', 'Marquette', 'Providence', 'Butler', 'Seton Hall', 'St. John\'s', 'Georgetown', 'DePaul']
+            };
+            
+            const visibleEvents = currentEvents.filter(event => {
+                if (filter === 'all') return true;
+                
+                const competitors = event.competitions[0].competitors;
+                const homeTeam = competitors.find(c => c.homeAway === 'home');
+                const awayTeam = competitors.find(c => c.homeAway === 'away');
+                
+                // Top 25 filter
+                if (filter === 'top25') {
+                    const homeRank = getRank(homeTeam);
+                    const awayRank = getRank(awayTeam);
+                    return (homeRank <= 25) || (awayRank <= 25);
+                }
+                
+                // NCAA Div 1 - show all college basketball
+                if (filter === 'ncaa-d1') {
+                    return currentSport.includes('college');
+                }
+                
+                // Conference filters
+                if (conferenceMap[filter]) {
+                    const teams = conferenceMap[filter];
+                    const homeName = homeTeam.team.displayName || homeTeam.team.name;
+                    const awayName = awayTeam.team.displayName || awayTeam.team.name;
+                    return teams.some(t => homeName.includes(t) || awayName.includes(t));
+                }
+                
+                return true;
+            });
+
+            if (visibleEvents.length === 0 && !silent) {
+                const msg = 'No games found for selected filter';
+                scoreboard.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏟️</div>
+                        <div class="empty-state-title">${msg}</div>
+                        <div class="empty-state-text">Try a different filter</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // FIX #2: Sort by game time
+            visibleEvents.sort((a, b) => {
+                const aLive = a.status.type.state === 'in' ? 1 : 0;
+                const bLive = b.status.type.state === 'in' ? 1 : 0;
+                if (aLive !== bLive) return bLive - aLive;
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            // SEAMLESS UPDATE: Only update changed content
+            if (silent) {
+                visibleEvents.forEach((event, index) => {
+                    const existingCard = scoreboard.querySelector(`[data-game-id="${event.id}"]`);
+                    if (existingCard) {
+                        updateGameCardInPlace(existingCard, event, currentSport);
+                    }
+                });
+            } else {
+                // Initial render - clear and build
+                scoreboard.innerHTML = '';
+                visibleEvents.forEach(event => {
+                    scoreboard.appendChild(createGameCard(event, currentSport));
+                });
+            }
+        }
+
+        // Update card in-place without DOM manipulation
+        function updateGameCardInPlace(card, event, sportPath) {
+            const competition = event.competitions[0];
+            const isLive = event.status.type.state === 'in';
+            const isPre = event.status.type.state === 'pre';
+            const isFinished = event.status.type.completed;
+            const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
+            const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
+            
+            // Update live class
+            if (isLive && !card.classList.contains('live')) {
+                card.classList.add('live');
+            } else if (!isLive && card.classList.contains('live')) {
+                card.classList.remove('live');
+            }
+            
+            // Update status text and live indicator
+            const statusBar = card.querySelector('.status-bar');
+            if (statusBar) {
+                const statusSpan = statusBar.querySelector('span:first-child');
+                if (statusSpan) {
+                    const currentStatus = event.status.type.shortDetail;
+                    if (statusSpan.textContent.trim() !== currentStatus) {
+                        statusSpan.className = isLive ? 'live-indicator' : '';
+                        statusSpan.innerHTML = isLive 
+                            ? '<div class="live-dot"></div> ' + currentStatus
+                            : currentStatus;
+                    }
+                }
+            }
+            
+            // Update scores for both teams
+            const teamRows = card.querySelectorAll('.team-row');
+            if (teamRows.length >= 2) {
+                const awayScore = isPre ? '-' : (awayTeam.score || '0');
+                const homeScore = isPre ? '-' : (homeTeam.score || '0');
+                
+                // Update away team (first row)
+                const awayScoreEl = teamRows[0].querySelector('.team-score');
+                if (awayScoreEl && awayScoreEl.textContent !== awayScore) {
+                    awayScoreEl.textContent = awayScore;
+                }
+                
+                // Update home team (second row)
+                const homeScoreEl = teamRows[1].querySelector('.team-score');
+                if (homeScoreEl && homeScoreEl.textContent !== homeScore) {
+                    homeScoreEl.textContent = homeScore;
+                }
+                
+                // Update winner/loser styling
+                if (isFinished && !isPre) {
+                    const awayPoints = parseInt(awayScore);
+                    const homePoints = parseInt(homeScore);
+                    
+                    if (awayPoints > homePoints) {
+                        teamRows[0].classList.add('winner');
+                        teamRows[0].classList.remove('loser');
+                        teamRows[1].classList.add('loser');
+                        teamRows[1].classList.remove('winner');
+                    } else if (homePoints > awayPoints) {
+                        teamRows[1].classList.add('winner');
+                        teamRows[1].classList.remove('loser');
+                        teamRows[0].classList.add('loser');
+                        teamRows[0].classList.remove('winner');
+                    }
+                } else {
+                    teamRows[0].classList.remove('winner', 'loser');
+                    teamRows[1].classList.remove('winner', 'loser');
+                }
+            }
+        }
+
+        // Create Game Card
+        function createGameCard(event, sportPath) {
+            const competition = event.competitions[0];
+            const status = event.status.type.shortDetail;
+            const isLive = event.status.type.state === 'in';
+            const isFinished = event.status.type.completed;
+            const isPre = event.status.type.state === 'pre'; // FIX #2: Detect pre-game
+            const gameId = event.id;
+            
+            const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
+            const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
+
+            const cardLink = document.createElement('a');
+            cardLink.className = `match-card ${isLive ? 'live' : ''}`;
+            cardLink.href = `game.html?id=${gameId}&sport=${sportPath}`;
+            cardLink.setAttribute('data-game-id', gameId);
+            cardLink.style.animationDelay = `${Math.random() * 0.1}s`;
+
+            cardLink.innerHTML = `
+                <div class="status-bar">
+                    <span class="${isLive ? 'live-indicator' : ''}">
+                        ${isLive ? '<div class="live-dot"></div>' : ''} ${status}
+                    </span>
+                    <span class="game-time">${formatDate(event.date)}</span>
+                </div>
+                ${renderTeamRow(awayTeam, homeTeam, isFinished, isPre)}
+                ${renderTeamRow(homeTeam, awayTeam, isFinished, isPre)}
+            `;
+
+            return cardLink;
+        }
+
+        // Render Team Row
+        function renderTeamRow(team, opponent, isFinished, isPre) {
+            const rank = getRank(team);
+            const rankClass = rank <= 5 ? 'top-5' : rank <= 10 ? 'top-10' : '';
+            const rankDisplay = rank <= 25 
+                ? `<span class="rank-badge ${rankClass}">#${rank}</span>` 
+                : '';
+            
+            const record = team.records?.[0]?.summary || '';
+            
+            // FIX #2: Handle pre-game scores
+            const score = isPre ? '-' : (team.score || '0');
+            
+            let statusClass = '';
+            if (isFinished && !isPre) {
+                statusClass = parseInt(team.score) > parseInt(opponent.score) ? 'winner' : 'loser';
+            }
+
+            return `
+                <div class="team-row ${statusClass}">
+                    <div class="team-info">
+                        <img src="${team.team.logo || ''}" class="team-logo" alt="${team.team.name}">
+                        <div class="team-details">
+                            <div class="team-name-row">
+                                ${rankDisplay}
+                                <span class="team-name">${team.team.abbreviation || team.team.name}</span>
+                            </div>
+                            ${record ? `<span class="team-record">${record}</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="team-score">${score}</span>
+                </div>
+            `;
+        }
+
+        // Get Team Rank
+        function getRank(competitor) {
+            if (competitor.curatedRank && competitor.curatedRank.current <= 25) {
+                return competitor.curatedRank.current;
+            }
+            return 999;
+        }
+
+        // Format Date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const isToday = date.toDateString() === now.toDateString();
+            
+            if (isToday) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + 
+                       ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) clearInterval(refreshInterval);
+        });
+    </script>
+</body>
+</html>

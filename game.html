@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/gridstack@7.2.3/dist/gridstack.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@7.2.3/dist/gridstack-all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-tertiary: #666666;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #ff006e;
+            --live-color: #ff3b3b;
+            --border-color: #2a2a2a;
+            --border-hover: #3a3a3a;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --transition-speed: 0.2s;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #0a0a0a;
+            --text-secondary: #4a4a4a;
+            --text-tertiary: #8a8a8a;
+            --accent-primary: #0066cc;
+            --accent-secondary: #e91e63;
+            --live-color: #d32f2f;
+            --border-color: #e0e0e0;
+            --border-hover: #c0c0c0;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        /* FIX #6: Fullscreen mode - hide nav */
+        body.fullscreen nav {
+            transform: translateY(-100%);
+        }
+
+        /* FIX #6: Fullscreen toggle button */
+        .fullscreen-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            z-index: 200;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .fullscreen-toggle:hover {
+            background: var(--accent-primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--border-hover);
+        }
+
+        .layout-toggle {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .layout-toggle:hover {
+            border-color: var(--accent-primary);
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Matchup Header */
+        .matchup-header {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 2px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            animation: slideDown 0.4s ease-out;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        /* NEW: Compact/Ticker Mode */
+        .matchup-header.compact {
+            padding: 12px 24px;
+        }
+
+        .matchup-header.compact .teams-display {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            grid-template-columns: unset;
+        }
+
+        .matchup-header.compact .team-section {
+            flex-direction: row !important;
+            gap: 10px;
+            align-items: center;
+            text-align: left;
+        }
+
+        .matchup-header.compact .team-logo-large {
+            width: 40px;
+            height: 40px;
+        }
+
+        .matchup-header.compact .team-name-large {
+            font-size: 1.2rem;
+        }
+
+        .matchup-header.compact .team-record-large {
+            display: none !important;
+        }
+
+        .matchup-header.compact .game-status:not(.live) {
+            display: none !important;
+        }
+
+        /* Keep line score but make it compact */
+        .matchup-header.compact .line-score {
+            margin-top: 12px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .matchup-header.compact .line-score table {
+            font-size: 0.7rem;
+            margin: 0 auto;
+        }
+
+        .matchup-header.compact .line-score th,
+        .matchup-header.compact .line-score td {
+            padding: 4px 8px;
+        }
+
+        .matchup-header.compact .line-score .team-cell img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .matchup-header.compact .line-score .total-score {
+            font-size: 0.9rem;
+        }
+
+        .matchup-header.compact .scores {
+            font-size: 1.5rem;
+        }
+
+        /* FIX #5: Show game status (live clock) in compact mode */
+        .matchup-header.compact .game-status.live {
+            display: block !important;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* NEW: Header Toggle Button */
+        .header-toggle-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .header-toggle-btn:hover {
+            background: var(--border-hover);
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .teams-display {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .team-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .team-section.away {
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .team-section.home {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .team-logo-large {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+            transition: transform var(--transition-speed);
+        }
+
+        .team-logo-large:hover {
+            transform: scale(1.05);
+        }
+
+        .team-name-large {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+        }
+
+        .team-record-large {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .score-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .scores {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 3.5rem;
+            font-weight: 900;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .dash {
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .game-status {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .game-status.live {
+            color: var(--live-color);
+            border-color: var(--live-color);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--live-color); }
+            50% { border-color: transparent; }
+        }
+
+        /* Widget Grid */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .widget {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            cursor: move;
+            transition: all var(--transition-speed);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* FIX #4: Widget Minimized State - Proportional Scaling */
+        .widget.minimized {
+            padding: 12px 20px;
+        }
+
+        .widget.minimized .widget-header {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+        }
+
+        .widget.minimized .widget-content {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .widget.minimized .chart-container {
+            height: 150px !important;
+        }
+
+        .widget.minimized .stat-row {
+            margin-bottom: 12px;
+        }
+
+        .widget.minimized .stat-header {
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+        }
+
+        .widget.minimized .stat-label {
+            font-size: 0.75rem;
+        }
+
+        .widget.minimized .stat-values {
+            font-size: 0.9rem;
+        }
+
+        .widget.minimized .bar-container {
+            height: 6px;
+            margin-top: 6px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* UPDATE #2: Make Everything Draggable */
+        .matchup-header,
+        .widget,
+        .table-card {
+            position: relative;
+        }
+
+        .drag-handle {
+            opacity: 0.3;
+            transition: opacity 0.2s;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .drag-handle:hover {
+            opacity: 1;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .sortable-drag {
+            opacity: 0.8;
+        }
+
+        /* UPDATE #2: Resizable Box Scores */
+        .table-card {
+            resize: horizontal;
+            overflow: auto;
+            min-width: 300px;
+            max-width: 100%;
+        }
+
+        .boxscore-section {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .widget:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .widget.sortable-drag {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .widget.sortable-ghost {
+            opacity: 0.3;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .widget-title {
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        /* NEW: Widget Controls */
+        .widget-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .min-btn {
+            cursor: pointer;
+            color: var(--text-tertiary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .min-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .drag-handle {
+            cursor: grab;
+            padding: 4px;
+            color: var(--text-tertiary);
+            font-size: 1.2rem;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Chart Widget */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        /* Stats Comparison */
+        .stat-row {
+            margin-bottom: 20px;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: 900;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .bar-container {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            margin-top: 8px;
+        }
+
+        .bar-segment {
+            height: 100%;
+            transition: width var(--transition-speed);
+        }
+
+        /* Box Score Tables */
+        .boxscore-section {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            transition: all 0.3s ease;
+        }
+
+        /* NEW: Split View Mode (Side-by-Side) */
+        .boxscore-section.split-view {
+            flex-direction: row;
+            gap: 16px;
+        }
+
+        .boxscore-section.split-view .table-card {
+            flex: 1;
+        }
+
+        /* Dense Table Styles for Split View */
+        .boxscore-section.split-view .table-wrapper {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .boxscore-section.split-view td,
+        .boxscore-section.split-view th {
+            padding: 6px 4px;
+            font-size: 0.75rem;
+        }
+
+        .boxscore-section.split-view .player-headshot {
+            width: 24px;
+            height: 24px;
+        }
+
+        .boxscore-section.split-view .player-name {
+            font-size: 0.85rem;
+        }
+
+        .boxscore-section.split-view .player-position {
+            font-size: 0.7rem;
+        }
+
+        /* NEW: Compact Box Score Mode */
+        .table-card.compact .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .table-card.compact td,
+        .table-card.compact th {
+            padding: 4px 6px;
+            font-size: 0.7rem;
+        }
+
+        .table-card.compact .player-headshot {
+            width: 20px;
+            height: 20px;
+        }
+
+        .table-card.compact .player-name {
+            font-size: 0.8rem;
+        }
+
+        .table-card.compact .player-position {
+            font-size: 0.65rem;
+        }
+
+        .table-card.compact .table-header {
+            padding: 12px 16px;
+        }
+
+        .table-card.compact .table-team-name {
+            font-size: 1rem;
+        }
+
+        .table-card.compact .table-team-logo {
+            width: 24px;
+            height: 24px;
+        }
+
+        .table-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 2px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 2px solid var(--border-color);
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            flex-wrap: nowrap;
+        }
+
+        .table-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .table-minimize-btn {
+            cursor: pointer;
+            color: var(--text-tertiary);
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .table-minimize-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .table-team-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .table-team-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        th:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background: var(--bg-secondary);
+            z-index: 11;
+            min-width: 180px;
+        }
+
+        td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'Space Mono', monospace;
+            font-weight: 600;
+        }
+
+        td:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background: var(--bg-card);
+            z-index: 9;
+            border-right: 1px solid var(--border-color);
+            padding: 10px 12px;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* FIX #5: Sticky Totals Footer */
+        tfoot tr {
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-secondary);
+            font-weight: bold;
+            z-index: 10;
+            border-top: 2px solid var(--border-color);
+        }
+
+        tfoot td {
+            color: var(--accent-primary);
+            background: var(--bg-secondary);
+            border-bottom: none;
+        }
+
+        tfoot td:first-child {
+            background: var(--bg-secondary);
+        }
+
+        .player-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .player-headshot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--border-color);
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: row;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .player-name {
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .player-position {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Section Headers in Box Score */
+        .box-section-header {
+            background: var(--bg-primary) !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem !important;
+            color: var(--text-main) !important;
+            padding: 14px 16px !important;
+        }
+
+        .box-section-header td {
+            background: var(--bg-primary) !important;
+            border-bottom: 2px solid var(--border-color) !important;
+            text-align: left !important;
+            font-family: 'Outfit', sans-serif !important;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-card) 25%, var(--border-color) 50%, var(--bg-card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-box {
+            width: 300px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .widgets-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .teams-display {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .team-section.away,
+            .team-section.home {
+                align-items: center;
+                text-align: center;
+            }
+
+            .scores {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .widget {
+                padding: 20px;
+            }
+        }
+
+        /* Portrait Mode (43" TV) */
+        @media (orientation: portrait) and (min-height: 1000px) {
+            body {
+                font-size: 20px;
+            }
+
+            .teams-display {
+                gap: 48px;
+            }
+
+            .team-logo-large {
+                width: 140px;
+                height: 140px;
+            }
+
+            .team-name-large {
+                font-size: 2.5rem;
+            }
+
+            .scores {
+                font-size: 5rem;
+            }
+
+            .widget {
+                padding: 32px;
+            }
+
+            .chart-container {
+                height: 400px;
+            }
+
+            th, td {
+                padding: 18px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- FIX #6: Fullscreen Toggle Button -->
+    <button class="fullscreen-toggle" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+    
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Scores</span>
+            </a>
+            <div class="nav-controls">
+                <button class="layout-toggle" id="split-view-btn">Split View</button>
+                <div class="theme-toggle" id="theme-toggle">
+                    <span id="theme-icon">🌙</span>
+                </div>
+                <button class="layout-toggle" id="reset-layout">Reset Layout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Loading game data...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+        const sportPath = urlParams.get('sport') || 'basketball/mens-college-basketball';
+        
+        const BASE_URL = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`;
+
+        let gameData = null;
+        let widgetOrder = [];
+
+        // Theme Management
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // NEW: Split View Toggle
+        const splitViewBtn = document.getElementById('split-view-btn');
+        
+        function toggleSplitView() {
+            const boxSection = document.getElementById('boxscores');
+            if (boxSection) {
+                boxSection.classList.toggle('split-view');
+                splitViewBtn.classList.toggle('active');
+            }
+        }
+        
+        if (splitViewBtn) {
+            splitViewBtn.addEventListener('click', toggleSplitView);
+        }
+
+        // NEW: Header Toggle (Compact/Ticker Mode)
+        window.toggleHeader = function() {
+            const header = document.querySelector('.matchup-header');
+            const btn = document.querySelector('.header-toggle-btn');
+            if (header && btn) {
+                header.classList.toggle('compact');
+                btn.innerHTML = header.classList.contains('compact') ? '▼' : '▲';
+            }
+        };
+
+        // FIX #6: Fullscreen Toggle
+        window.toggleFullscreen = function() {
+            document.body.classList.toggle('fullscreen');
+        };
+
+        // NEW: Widget Minimize Toggle
+        window.toggleWidget = function(btn) {
+            const widget = btn.closest('.widget');
+            if (widget) {
+                widget.classList.toggle('minimized');
+                btn.innerHTML = widget.classList.contains('minimized') ? '+' : '−';
+            }
+        };
+
+        // NEW: Box Score Toggle (Compact Mode)
+        window.toggleBoxScore = function(btn) {
+            const tableCard = btn.closest('.table-card');
+            if (tableCard) {
+                tableCard.classList.toggle('compact');
+                btn.innerHTML = tableCard.classList.contains('compact') ? '+' : '−';
+            }
+        };
+
+        // Initialize
+        loadTheme();
+        let isInitialRender = true;
+        fetchGameData();
+
+        // Fetch Game Data
+        async function fetchGameData() {
+            console.log('=== FETCH START ===');
+            console.log('Fetching game data from:', BASE_URL);
+            console.log('Game ID:', gameId);
+            console.log('Sport:', sportPath);
+            
+            try {
+                // Add timeout to the fetch
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    console.log('!!! TIMEOUT TRIGGERED !!!');
+                    controller.abort();
+                }, 10000); // 10 second timeout
+                
+                console.log('Sending fetch request...');
+                const response = await fetch(BASE_URL, { 
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                clearTimeout(timeoutId);
+                console.log('Fetch completed. Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                console.log('Parsing JSON...');
+                gameData = await response.json();
+                console.log('Game data received successfully. Keys:', Object.keys(gameData));
+                
+                renderPage(gameData, isInitialRender);
+                if (isInitialRender) {
+                    initializeDragAndDrop();
+                    isInitialRender = false;
+                }
+                console.log('=== FETCH SUCCESS ===');
+            } catch (error) {
+                console.error('=== FETCH ERROR ===');
+                console.error('Error type:', error.name);
+                console.error('Error message:', error.message);
+                console.error('Full error:', error);
+                
+                let errorMessage = 'Failed to load game data';
+                let errorDetails = 'Please check your connection and try again';
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Request timed out';
+                    errorDetails = 'The ESPN API is taking too long to respond';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage = 'CORS Error';
+                    errorDetails = 'Try opening the page from a local server or different browser';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network Error';
+                    errorDetails = 'Cannot reach ESPN API. Check your internet connection or try again later.';
+                }
+                
+                document.getElementById('content').innerHTML = `
+                    <div class="loading">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">⚠️</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">${errorMessage}</div>
+                        <div style="color: var(--text-tertiary); font-size: 0.9rem; margin-bottom: 20px;">${errorDetails}</div>
+                        <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--text-tertiary); background: var(--bg-secondary); padding: 16px; border-radius: 8px; text-align: left; max-width: 600px; margin: 0 auto; word-break: break-all;">
+                            <div style="margin-bottom: 8px;"><strong>Debug Info:</strong></div>
+                            <div>URL: ${BASE_URL}</div>
+                            <div>Error: ${error.message}</div>
+                            <div>Game ID: ${gameId}</div>
+                            <div>Sport: ${sportPath}</div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <a href="index.html" style="color: var(--accent-primary); text-decoration: none; font-weight: 600;">← Back to Scores</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Render Page
+        function renderPage(data, isInitial = true) {
+            try {
+                console.log('Rendering page with data:', data);
+                
+                if (!data || !data.header || !data.header.competitions || data.header.competitions.length === 0) {
+                    throw new Error('Invalid game data structure');
+                }
+                
+                const header = data.header.competitions[0];
+                const home = header.competitors.find(c => c.homeAway === 'home');
+                const away = header.competitors.find(c => c.homeAway === 'away');
+                
+                if (!home || !away) {
+                    throw new Error('Missing team data');
+                }
+
+                // If this is an update (not initial), just update scores and stats
+                if (!isInitial) {
+                    updateScoresAndStats(data, home, away, header);
+                    return;
+                }
+
+                // Initial render - build full page
+                renderInitialPage(data, home, away, header);
+            } catch (error) {
+                console.error('Render error:', error);
+                document.getElementById('content').innerHTML = `
+                    <div class="loading">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">⚠️</div>
+                        <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 12px;">Failed to render game data</div>
+                        <div style="color: var(--text-tertiary); font-size: 0.9rem; margin-bottom: 16px;">
+                            ${error.message}
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <a href="index.html" style="color: var(--accent-primary); text-decoration: none; font-weight: 600;">← Back to Scores</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Update only scores and stats without re-rendering DOM
+        function updateScoresAndStats(data, home, away, header) {
+            const isPre = header.status.type.state === 'pre';
+            const homeScore = isPre ? '-' : (home.score || '0');
+            const awayScore = isPre ? '-' : (away.score || '0');
+            const isLive = header.status.type.state === 'in';
+
+            // Update scores in header
+            const scoreElements = document.querySelectorAll('.scores span');
+            if (scoreElements.length >= 2) {
+                if (scoreElements[0].textContent !== awayScore) {
+                    scoreElements[0].textContent = awayScore;
+                }
+                if (scoreElements[2].textContent !== homeScore) {
+                    scoreElements[2].textContent = homeScore;
+                }
+            }
+
+            // Update status
+            const statusEl = document.querySelector('.game-status');
+            if (statusEl && statusEl.textContent !== header.status.type.detail) {
+                statusEl.textContent = header.status.type.detail;
+                if (isLive) {
+                    statusEl.classList.add('live');
+                } else {
+                    statusEl.classList.remove('live');
+                }
+            }
+
+            // Update line scores if they exist
+            if (away.linescores && home.linescores) {
+                updateLineScores(away, home);
+            }
+
+            // Update box scores if they exist
+            if (data.boxscore && data.boxscore.players) {
+                updateBoxScores(data.boxscore.players);
+            }
+
+            // Update comparison stats
+            if (data.boxscore && data.boxscore.teams) {
+                const homeColor = '#' + (home.team.color || '00d9ff');
+                const awayColor = '#' + (away.team.color || 'ff006e');
+                updateComparison(data.boxscore.teams, homeColor, awayColor);
+            }
+        }
+
+        // Update line scores in-place
+        function updateLineScores(away, home) {
+            const lineScoreTable = document.querySelector('.line-score table tbody');
+            if (!lineScoreTable) return;
+
+            const rows = lineScoreTable.querySelectorAll('tr');
+            if (rows.length >= 2) {
+                // Update away team scores
+                const awayCells = rows[0].querySelectorAll('td');
+                away.linescores.forEach((score, i) => {
+                    if (awayCells[i + 1] && awayCells[i + 1].textContent !== score.displayValue) {
+                        awayCells[i + 1].textContent = score.displayValue;
+                    }
+                });
+                if (awayCells[awayCells.length - 1]) {
+                    awayCells[awayCells.length - 1].textContent = away.score;
+                }
+
+                // Update home team scores
+                const homeCells = rows[1].querySelectorAll('td');
+                home.linescores.forEach((score, i) => {
+                    if (homeCells[i + 1] && homeCells[i + 1].textContent !== score.displayValue) {
+                        homeCells[i + 1].textContent = score.displayValue;
+                    }
+                });
+                if (homeCells[homeCells.length - 1]) {
+                    homeCells[homeCells.length - 1].textContent = home.score;
+                }
+            }
+        }
+
+        // Update box scores in-place
+        function updateBoxScores(players) {
+            players.forEach((teamData, teamIndex) => {
+                const tableCard = document.querySelectorAll('.table-card')[teamIndex];
+                if (!tableCard) return;
+
+                const tbody = tableCard.querySelector('tbody');
+                if (!tbody) return;
+
+                const rows = tbody.querySelectorAll('tr');
+                teamData.statistics[0].athletes.forEach((player, playerIndex) => {
+                    const row = rows[playerIndex];
+                    if (!row) return;
+
+                    const statCells = row.querySelectorAll('td:not(:first-child)');
+                    player.stats.slice(0, 5).forEach((stat, statIndex) => {
+                        if (statCells[statIndex] && statCells[statIndex].textContent !== stat) {
+                            statCells[statIndex].textContent = stat;
+                        }
+                    });
+                });
+            });
+        }
+
+        // Update comparison stats
+        function updateComparison(teams, homeColor, awayColor) {
+            const container = document.getElementById('comparison-stats');
+            if (!container) return;
+
+            const statRows = container.querySelectorAll('.stat-row');
+            const keys = ['fieldGoalPct', 'threePointFieldGoalPct', 'freeThrowPct', 'reboundsTotal', 'turnovers'];
+
+            keys.forEach((key, index) => {
+                if (index >= statRows.length) return;
+                
+                const statRow = statRows[index];
+                const homeTeam = teams.find(t => t.homeAway === 'home');
+                const awayTeam = teams.find(t => t.homeAway === 'away');
+                
+                const homeStat = homeTeam.statistics.find(s => s.name === key);
+                const awayStat = awayTeam.statistics.find(s => s.name === key);
+                
+                if (homeStat && awayStat) {
+                    const values = statRow.querySelectorAll('.stat-values span');
+                    if (values.length >= 2) {
+                        if (values[0].textContent !== awayStat.displayValue) {
+                            values[0].textContent = awayStat.displayValue;
+                        }
+                        if (values[1].textContent !== homeStat.displayValue) {
+                            values[1].textContent = homeStat.displayValue;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initial page render
+        function renderInitialPage(data, home, away, header) {
+            
+            const getLogo = (team) => team.team.logo || (team.team.logos ? team.team.logos[0].href : '');
+            const homeLogo = getLogo(home);
+            const awayLogo = getLogo(away);
+            
+            const homeColor = '#' + (home.team.color || '00d9ff');
+            const awayColor = '#' + (away.team.color || 'ff006e');
+            
+            const isLive = header.status.type.state === 'in';
+            const isPre = header.status.type.state === 'pre'; // FIX #2: Detect pre-game
+
+            // FIX #2: Handle pre-game scores
+            const homeScore = isPre ? '-' : (home.score || '0');
+            const awayScore = isPre ? '-' : (away.score || '0');
+
+            // Get rankings (only if ranked in top 25)
+            const awayRank = away.curatedRank?.current <= 25 ? away.curatedRank.current : null;
+            const homeRank = home.curatedRank?.current <= 25 ? home.curatedRank.current : null;
+
+            // Get records
+            const awayRecord = away.records?.[0]?.summary || '';
+            const homeRecord = home.records?.[0]?.summary || '';
+
+            // Get venue information
+            const venue = header.venue?.fullName || '';
+            const venueLocation = header.venue?.address?.city && header.venue?.address?.state 
+                ? `${header.venue.address.city}, ${header.venue.address.state}` 
+                : '';
+
+            // Build line score table
+            let lineScoreHtml = '';
+            if (away.linescores && away.linescores.length > 0) {
+                const numPeriods = away.linescores.length;
+                let periodHeaders = '';
+                
+                // Generate period labels
+                for (let i = 0; i < numPeriods; i++) {
+                    let label;
+                    if (numPeriods === 2) {
+                        label = i === 0 ? '1' : '2'; // Halves
+                    } else if (numPeriods <= 4) {
+                        label = (i + 1).toString(); // Quarters
+                    } else {
+                        // Overtime periods
+                        if (i < 4) {
+                            label = (i + 1).toString();
+                        } else {
+                            const otNum = i - 3;
+                            label = otNum === 1 ? 'OT' : `${otNum}OT`;
+                        }
+                    }
+                    periodHeaders += `<th>${label}</th>`;
+                }
+
+                const buildRow = (team, teamColor) => {
+                    const rank = team === away ? awayRank : homeRank;
+                    const record = team === away ? awayRecord : homeRecord;
+                    const rankDisplay = rank ? `<span style="font-size: 0.8rem; margin-right: 4px;">${rank}</span>` : '';
+                    
+                    const scores = team.linescores.map(ls => `<td>${ls.displayValue || ls.value}</td>`).join('');
+                    
+                    return `
+                        <tr>
+                            <td class="team-cell">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <img src="${getLogo(team)}" style="width: 24px; height: 24px; object-fit: contain;">
+                                    <div>
+                                        <div style="font-weight: 700; color: ${teamColor};">
+                                            ${rankDisplay}${team.team.displayName || team.team.name}
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--text-tertiary);">${record}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            ${scores}
+                            <td class="total-score" style="font-weight: 900; font-size: 1.1rem;">${team.score}</td>
+                        </tr>
+                    `;
+                };
+
+                lineScoreHtml = `
+                    <div class="line-score">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Team</th>
+                                    ${periodHeaders}
+                                    <th>T</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${buildRow(away, awayColor)}
+                                ${buildRow(home, homeColor)}
+                            </tbody>
+                        </table>
+                        ${venue ? `<div style="text-align: center; margin-top: 12px; font-size: 0.85rem; color: var(--text-muted);">
+                            <strong>${venue}</strong>${venueLocation ? ` • ${venueLocation}` : ''}
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+
+            let html = `
+                <div class="matchup-header">
+                    <button class="header-toggle-btn" onclick="toggleHeader()">▲</button>
+                    <div class="teams-display">
+                        <div class="team-section away">
+                            <img src="${awayLogo}" class="team-logo-large" alt="${away.team.name}">
+                            <div class="team-name-large" style="color: ${awayColor}">
+                                ${awayRank ? `<span class="team-rank">#${awayRank}</span>` : ''}
+                                ${away.team.displayName || away.team.name}
+                            </div>
+                            ${awayRecord ? `<div class="team-record-large">${awayRecord}</div>` : ''}
+                        </div>
+                        <div class="score-display">
+                            <div class="scores">
+                                <span style="color: ${awayColor}">${awayScore}</span>
+                                <span class="dash">-</span>
+                                <span style="color: ${homeColor}">${homeScore}</span>
+                            </div>
+                            <div class="game-status ${isLive ? 'live' : ''}">${header.status.type.detail}</div>
+                        </div>
+                        <div class="team-section home">
+                            <img src="${homeLogo}" class="team-logo-large" alt="${home.team.name}">
+                            <div class="team-name-large" style="color: ${homeColor}">
+                                ${homeRank ? `<span class="team-rank">#${homeRank}</span>` : ''}
+                                ${home.team.displayName || home.team.name}
+                            </div>
+                            ${homeRecord ? `<div class="team-record-large">${homeRecord}</div>` : ''}
+                        </div>
+                    </div>
+                    
+                    ${lineScoreHtml}
+                </div>
+
+                <div class="widgets-grid" id="widgets-grid">
+                    <!-- Win Probability Widget -->
+                    <div class="widget" data-widget="winprob">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Win Probability</h3>
+                            <div class="widget-controls">
+                                <span class="min-btn" onclick="toggleWidget(this)">−</span>
+                                <span class="drag-handle">⋮⋮</span>
+                            </div>
+                        </div>
+                        <div class="widget-content" id="chart-content"></div>
+                    </div>
+
+                    <!-- Team Stats Widget -->
+                    <div class="widget" data-widget="stats">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Team Comparison</h3>
+                            <div class="widget-controls">
+                                <span class="min-btn" onclick="toggleWidget(this)">−</span>
+                                <span class="drag-handle">⋮⋮</span>
+                            </div>
+                        </div>
+                        <div class="widget-content" id="comparison-stats"></div>
+                    </div>
+                </div>
+
+                <div class="boxscore-section" id="boxscores"></div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+
+            // Render Win Probability Chart
+            if (data.winprobability && data.winprobability.length > 0) {
+                renderWinProbChart(data.winprobability, homeColor, awayColor, home.team.abbreviation, away.team.abbreviation);
+            } else {
+                document.getElementById('chart-content').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-tertiary);">
+                        <div style="font-size: 2rem; margin-bottom: 12px;">📊</div>
+                        <div>Win probability data not available</div>
+                    </div>
+                `;
+            }
+
+            // Render Team Comparison
+            if (data.boxscore && data.boxscore.teams) {
+                renderComparison(data.boxscore.teams, homeColor, awayColor);
+            }
+
+            // Render Box Scores
+            if (data.boxscore && data.boxscore.players) {
+                const boxContainer = document.getElementById('boxscores');
+                data.boxscore.players.forEach(teamData => {
+                    boxContainer.innerHTML += renderBoxScore(teamData);
+                });
+            }
+            
+            console.log('Page rendering completed successfully');
+        }
+
+        // Render Win Probability Chart
+        function renderWinProbChart(probData, homeColor, awayColor, homeName, awayName) {
+            const container = document.getElementById('chart-content');
+            
+            container.innerHTML = `
+                <div class="chart-container">
+                    <canvas id="winProbChart"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${homeColor}"></div>
+                        <span>${homeName} Win %</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${awayColor}"></div>
+                        <span>${awayName} Win %</span>
+                    </div>
+                </div>
+            `;
+
+            const ctx = document.getElementById('winProbChart').getContext('2d');
+            
+            const labels = probData.map((d, i) => i);
+            const homeData = probData.map(d => (d.homeWinPercentage * 100));
+            const awayData = probData.map(d => ((1 - d.homeWinPercentage) * 100));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: `${homeName} Win %`,
+                            data: homeData,
+                            borderColor: homeColor,
+                            backgroundColor: homeColor + '30',
+                            borderWidth: 3,
+                            fill: true,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: `${awayName} Win %`,
+                            data: awayData,
+                            borderColor: awayColor,
+                            backgroundColor: awayColor + '30',
+                            borderWidth: 3,
+                            fill: true,
+                            pointRadius: 0,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                title: () => 'Win Probability',
+                                label: (context) => {
+                                    return `${context.dataset.label}: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(128, 128, 128, 0.1)' },
+                            ticks: {
+                                color: '#888',
+                                callback: v => v + '%',
+                                font: { family: 'Space Mono' }
+                            }
+                        },
+                        x: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Team Comparison
+        function renderComparison(teamsData, homeColor, awayColor) {
+            const container = document.getElementById('comparison-stats');
+            
+            const findStat = (stats, key) => stats.find(s => s.abbreviation === key || s.name === key);
+
+            const awayStats = teamsData[0].statistics;
+            const homeStats = teamsData[1].statistics;
+
+            const statsToShow = ['FG%', '3PT%', 'FT%', 'REB', 'AST', 'TO'];
+
+            statsToShow.forEach(key => {
+                const hStat = findStat(homeStats, key);
+                const aStat = findStat(awayStats, key);
+
+                if (hStat && aStat) {
+                    let hVal = parseFloat(hStat.displayValue);
+                    let aVal = parseFloat(aStat.displayValue);
+                    
+                    if (isNaN(hVal) && hStat.displayValue.includes('-')) {
+                        hVal = parseFloat(hStat.displayValue.split('-')[0]);
+                        aVal = parseFloat(aStat.displayValue.split('-')[0]);
+                    }
+
+                    if (isNaN(hVal)) { hVal = 50; aVal = 50; }
+
+                    const total = hVal + aVal || 1;
+                    const aPer = (aVal / total) * 100;
+                    const hPer = (hVal / total) * 100;
+
+                    container.innerHTML += `
+                        <div class="stat-row">
+                            <div class="stat-header">
+                                <span class="stat-label">${hStat.label || key}</span>
+                            </div>
+                            <div class="stat-values">
+                                <span style="color: ${awayColor}">${aStat.displayValue}</span>
+                                <span style="color: ${homeColor}">${hStat.displayValue}</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-segment" style="width: ${aPer}%; background: ${awayColor}"></div>
+                                <div class="bar-segment" style="width: ${hPer}%; background: ${homeColor}"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // Render Box Score Table
+        function renderBoxScore(teamData) {
+            const team = teamData.team;
+            const rawLabels = teamData.statistics[0].keys;
+            const players = teamData.statistics[0].athletes;
+            const logo = team.logo || (team.logos ? team.logos[0].href : '');
+            const teamColor = '#' + (team.color || '00d9ff');
+
+            // ESPN-style stat order: PTS REB AST FG 3PT FT PF MIN STL BLK TO
+            const ESPN_ORDER = [
+                'points', 
+                'rebounds', 
+                'assists', 
+                'fieldGoalsMade-fieldGoalsAttempted', 
+                'threePointFieldGoalsMade-threePointFieldGoalsAttempted', 
+                'freeThrowsMade-freeThrowsAttempted',
+                'personalFouls', 
+                'minutes', 
+                'steals', 
+                'blocks', 
+                'turnovers'
+            ];
+
+            const STAT_DISPLAY = {
+                'points': 'PTS',
+                'rebounds': 'REB',
+                'assists': 'AST',
+                'fieldGoalsMade-fieldGoalsAttempted': 'FG',
+                'threePointFieldGoalsMade-threePointFieldGoalsAttempted': '3PT',
+                'freeThrowsMade-freeThrowsAttempted': 'FT',
+                'personalFouls': 'PF',
+                'minutes': 'MIN',
+                'steals': 'STL',
+                'blocks': 'BLK',
+                'turnovers': 'TO'
+            };
+
+            // Create mapping of old index to new index based on ESPN order
+            const statIndices = ESPN_ORDER.map(espnKey => rawLabels.indexOf(espnKey)).filter(idx => idx !== -1);
+            const orderedLabels = statIndices.map(idx => rawLabels[idx]);
+            const displayHeaders = orderedLabels.map(label => STAT_DISPLAY[label] || label);
+
+            // Separate starters and bench
+            const starters = players.filter(p => p.starter === true);
+            
+            // FIX #3: Only show bench players with actual stats (not all dashes)
+            const bench = players.filter(p => {
+                if (p.starter === true) return false;
+                // Check if player has any actual stats (not all empty/zero/dash)
+                const hasStats = p.stats.some(stat => {
+                    const statStr = String(stat || '');
+                    return statStr !== '' && statStr !== '0' && statStr !== '-' && statStr !== '0-0';
+                });
+                return hasStats;
+            });
+
+            // Initialize team totals
+            const teamTotals = new Array(statIndices.length).fill(0);
+            let totalFGMade = 0, totalFGAttempted = 0;
+            let total3PTMade = 0, total3PTAttempted = 0;
+            let totalFTMade = 0, totalFTAttempted = 0;
+
+            const renderPlayerRow = (p) => {
+                const name = p.athlete.displayName || 'Unknown';
+                const pos = p.athlete.position?.abbreviation || '';
+                const img = p.athlete.headshot?.href || '';
+                
+                // Reorder stats according to ESPN order
+                const orderedStats = statIndices.map(idx => p.stats[idx]);
+                
+                // Add to team totals
+                orderedStats.forEach((stat, i) => {
+                    const label = orderedLabels[i];
+                    
+                    // Check if stat exists and is a string
+                    if (!stat) return;
+                    
+                    const statStr = String(stat);
+                    
+                    // Handle shooting stats separately (format: "X-Y")
+                    if (label === 'fieldGoalsMade-fieldGoalsAttempted' && statStr.includes('-')) {
+                        const [made, attempted] = statStr.split('-').map(Number);
+                        if (!isNaN(made) && !isNaN(attempted)) {
+                            totalFGMade += made;
+                            totalFGAttempted += attempted;
+                        }
+                    } else if (label === 'threePointFieldGoalsMade-threePointFieldGoalsAttempted' && statStr.includes('-')) {
+                        const [made, attempted] = statStr.split('-').map(Number);
+                        if (!isNaN(made) && !isNaN(attempted)) {
+                            total3PTMade += made;
+                            total3PTAttempted += attempted;
+                        }
+                    } else if (label === 'freeThrowsMade-freeThrowsAttempted' && statStr.includes('-')) {
+                        const [made, attempted] = statStr.split('-').map(Number);
+                        if (!isNaN(made) && !isNaN(attempted)) {
+                            totalFTMade += made;
+                            totalFTAttempted += attempted;
+                        }
+                    } else if (label !== 'minutes') {
+                        // Add numeric stats (skip minutes for totals)
+                        const numValue = parseFloat(statStr);
+                        if (!isNaN(numValue)) {
+                            teamTotals[i] += numValue;
+                        }
+                    }
+                });
+                
+                return `
+                    <tr>
+                        <td>
+                            <div class="player-cell">
+                                ${img ? `<img src="${img}" class="player-headshot" onerror="this.style.display='none'">` : ''}
+                                <div class="player-info">
+                                    <div class="player-name">${name}</div>
+                                    <div class="player-position">${pos}</div>
+                                </div>
+                            </div>
+                        </td>
+                        ${orderedStats.map(s => `<td>${s || '-'}</td>`).join('')}
+                    </tr>
+                `;
+            };
+
+            let tbody = '';
+            
+            // Add starters section
+            if (starters.length > 0) {
+                tbody += `<tr class="box-section-header"><td colspan="${orderedLabels.length + 1}">STARTERS</td></tr>`;
+                tbody += starters.map(renderPlayerRow).join('');
+            }
+            
+            // Add bench section
+            if (bench.length > 0) {
+                tbody += `<tr class="box-section-header"><td colspan="${orderedLabels.length + 1}">BENCH</td></tr>`;
+                tbody += bench.map(renderPlayerRow).join('');
+            }
+
+            // Build team totals row
+            const totalStats = teamTotals.map((total, i) => {
+                const label = orderedLabels[i];
+                
+                if (label === 'fieldGoalsMade-fieldGoalsAttempted') {
+                    return `${totalFGMade}-${totalFGAttempted}`;
+                } else if (label === 'threePointFieldGoalsMade-threePointFieldGoalsAttempted') {
+                    return `${total3PTMade}-${total3PTAttempted}`;
+                } else if (label === 'freeThrowsMade-freeThrowsAttempted') {
+                    return `${totalFTMade}-${totalFTAttempted}`;
+                } else if (label === 'minutes') {
+                    return '-'; // Don't total minutes
+                } else {
+                    return Math.round(total); // Round to avoid decimals
+                }
+            });
+
+            // FIX #5: Build totals row for tfoot (sticky footer)
+            const tfootRow = `
+                <tr>
+                    <td>
+                        <div class="player-cell">
+                            <div class="player-info">
+                                <div class="player-name" style="text-transform: uppercase; letter-spacing: 0.05em;">TEAM TOTALS</div>
+                            </div>
+                        </div>
+                    </td>
+                    ${totalStats.map(s => `<td>${s}</td>`).join('')}
+                </tr>
+            `;
+
+            return `
+                <div class="table-card">
+                    <div class="table-header" style="border-bottom-color: ${teamColor}">
+                        <div class="table-header-left">
+                            <img src="${logo}" class="table-team-logo">
+                            <div class="table-team-name" style="color: ${teamColor}">${team.displayName}</div>
+                        </div>
+                        <span class="table-minimize-btn" onclick="toggleBoxScore(this)">−</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    ${displayHeaders.map(h => `<th>${h}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>${tbody}</tbody>
+                            <tfoot>${tfootRow}</tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Drag and Drop Functionality - UPDATE #2: All elements draggable
+        function initializeDragAndDrop() {
+            const grid = document.getElementById('widgets-grid');
+            const boxscores = document.getElementById('boxscores');
+            
+            if (grid) {
+                // Make widgets draggable
+                Sortable.create(grid, {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag'
+                });
+            }
+            
+            if (boxscores) {
+                // Make box scores draggable and resizable
+                Sortable.create(boxscores, {
+                    animation: 150,
+                    handle: '.table-header',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag'
+                });
+            }
+        }
+
+        function saveWidgetOrder() {
+            // Keeping for compatibility
+        }
+
+        function reorderWidgets() {
+            // Keeping for compatibility
+        }
+
+        // Reset Layout
+        document.getElementById('reset-layout').addEventListener('click', () => {
+            localStorage.removeItem('widgetOrder');
+            widgetOrder = [];
+            if (gameData) {
+                renderPage(gameData);
+                initializeDragAndDrop();
+            }
+        });
+
+        // FIX #1: Auto-refresh for ALL games every 10 seconds
+        setInterval(() => {
+            fetchGameData();
+        }, 10000);
+
+        // Add test button for debugging
+        window.testAPI = async function() {
+            console.log('Manual API test initiated...');
+            console.log('Game ID:', gameId);
+            console.log('Sport Path:', sportPath);
+            console.log('Full URL:', BASE_URL);
+            
+            try {
+                const testResponse = await fetch(BASE_URL);
+                console.log('Test response status:', testResponse.status);
+                const testData = await testResponse.json();
+                console.log('Test data:', testData);
+                alert('API Test Successful! Check console for details.');
+            } catch (error) {
+                console.error('API Test Failed:', error);
+                alert('API Test Failed: ' + error.message);
+            }
+        };
+        
+        console.log('Game page loaded. Available debug commands:');
+        console.log('- testAPI() - Test the API connection manually');
+        console.log('- BASE_URL:', BASE_URL);
+    </script>
+</body>
+</html>
