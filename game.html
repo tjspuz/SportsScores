@@ -392,6 +392,179 @@
             50% { border-color: transparent; }
         }
 
+        /* FEATURE: Betting Odds in Matchup Header */
+        .matchup-betting-odds {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .odds-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .odds-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+
+        .odds-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .odds-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .odds-chip .odds-label {
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+
+        .matchup-header.compact .matchup-betting-odds {
+            display: none;
+        }
+
+        /* FEATURE: Possession Indicator */
+        .possession-indicator {
+            display: inline-block;
+            font-size: 1.5rem;
+            margin-right: 8px;
+            animation: bounce-possession 0.6s ease-in-out infinite;
+        }
+
+        @keyframes bounce-possession {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .timeout-indicator {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            font-family: 'Space Mono', monospace;
+            margin-top: 4px;
+        }
+
+        /* FEATURE: Team Leaders Widget */
+        .leaders-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .leader-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .leader-headshot {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .leader-info {
+            flex: 1;
+        }
+
+        .leader-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .leader-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .leader-stat-value {
+            font-size: 1.4rem;
+            font-weight: 900;
+            font-family: 'Space Mono', monospace;
+            color: var(--accent-primary);
+        }
+
+        /* FEATURE: Play-by-Play Widget */
+        .play-feed {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .play-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-left: 3px solid var(--border-color);
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .play-item:hover {
+            background: var(--bg-secondary);
+            border-left-color: var(--accent-primary);
+        }
+
+        .play-item.scoring {
+            border-left-color: var(--accent-primary);
+            background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+        }
+
+        .play-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            min-width: 45px;
+        }
+
+        .play-content {
+            flex: 1;
+        }
+
+        .play-team {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .play-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .play-score {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
         /* Widget Grid */
         /* MODERN FLEXIBLE GRID SYSTEM */
         .widgets-grid {
@@ -1800,6 +1973,40 @@
                 `;
             }
 
+            // FEATURE: Extract betting odds
+            const odds = header.odds?.[0];
+            let oddsHTML = '';
+            if (odds && isPre) {
+                const spread = odds.details || '';
+                const overUnder = odds.overUnder || '';
+                const awayMoneyLine = odds.awayTeamOdds?.moneyLine;
+                const homeMoneyLine = odds.homeTeamOdds?.moneyLine;
+                
+                oddsHTML = `
+                    <div class="matchup-betting-odds">
+                        <div class="odds-section">
+                            <span class="odds-title">Betting Lines</span>
+                            <div class="odds-grid">
+                                ${spread ? `<div class="odds-chip"><span class="odds-label">Spread:</span> ${spread}</div>` : ''}
+                                ${overUnder ? `<div class="odds-chip"><span class="odds-label">O/U:</span> ${overUnder}</div>` : ''}
+                                ${awayMoneyLine ? `<div class="odds-chip"><span class="odds-label">${away.team.abbreviation} ML:</span> ${awayMoneyLine > 0 ? '+' : ''}${awayMoneyLine}</div>` : ''}
+                                ${homeMoneyLine ? `<div class="odds-chip"><span class="odds-label">${home.team.abbreviation} ML:</span> ${homeMoneyLine > 0 ? '+' : ''}${homeMoneyLine}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // FEATURE: Possession indicator
+            const situation = header.situation;
+            const awayHasPossession = situation?.possession === away.id;
+            const homeHasPossession = situation?.possession === home.id;
+            const possessionIcon = '🏀'; // Basketball icon
+            
+            // FEATURE: Timeouts and fouls
+            const awayTimeouts = away.timeoutsRemaining !== undefined ? away.timeoutsRemaining : '';
+            const homeTimeouts = home.timeoutsRemaining !== undefined ? home.timeoutsRemaining : '';
+
             let html = `
                 <div class="matchup-header">
                     <button class="header-toggle-btn" onclick="toggleHeader()">▲</button>
@@ -1807,10 +2014,12 @@
                         <div class="team-section away">
                             <img src="${awayLogo}" class="team-logo-large" alt="${away.team.name}">
                             <div class="team-name-large" style="color: ${awayColor}">
+                                ${awayHasPossession && isLive ? `<span class="possession-indicator">${possessionIcon}</span>` : ''}
                                 ${awayRank ? `<span class="team-rank">#${awayRank}</span>` : ''}
                                 ${away.team.displayName || away.team.name}
                             </div>
                             ${awayRecord ? `<div class="team-record-large">${awayRecord}</div>` : ''}
+                            ${awayTimeouts !== '' && isLive ? `<div class="timeout-indicator">⏱️ ${awayTimeouts} TO</div>` : ''}
                         </div>
                         <div class="score-display">
                             <div class="scores">
@@ -1823,13 +2032,16 @@
                         <div class="team-section home">
                             <img src="${homeLogo}" class="team-logo-large" alt="${home.team.name}">
                             <div class="team-name-large" style="color: ${homeColor}">
+                                ${homeHasPossession && isLive ? `<span class="possession-indicator">${possessionIcon}</span>` : ''}
                                 ${homeRank ? `<span class="team-rank">#${homeRank}</span>` : ''}
                                 ${home.team.displayName || home.team.name}
                             </div>
                             ${homeRecord ? `<div class="team-record-large">${homeRecord}</div>` : ''}
+                            ${homeTimeouts !== '' && isLive ? `<div class="timeout-indicator">⏱️ ${homeTimeouts} TO</div>` : ''}
                         </div>
                     </div>
                     
+                    ${oddsHTML}
                     ${lineScoreHtml}
                 </div>
 
@@ -1850,7 +2062,7 @@
                         <div class="widget-content" id="chart-content"></div>
                     </div>
 
-                    <!-- Team Stats Widget -->
+                    <!-- Team Comparison Widget -->
                     <div class="widget width-half" data-widget="stats">
                         <div class="widget-header">
                             <h3 class="widget-title">Team Comparison</h3>
@@ -1864,6 +2076,40 @@
                             </div>
                         </div>
                         <div class="widget-content" id="comparison-stats"></div>
+                    </div>
+
+                    <!-- NEW: Team Leaders Widget -->
+                    <div class="widget width-half" data-widget="leaders" id="leaders-widget">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Team Leaders</h3>
+                            <div class="widget-controls">
+                                <div class="resize-btns">
+                                    <span class="resize-btn" onclick="resizeWidget(this, 'full')" title="Full Width">▭</span>
+                                    <span class="resize-btn active" onclick="resizeWidget(this, 'half')" title="Half Width">▯</span>
+                                </div>
+                                <span class="min-btn" onclick="toggleWidget(this)">−</span>
+                                <span class="drag-handle">⋮⋮</span>
+                            </div>
+                        </div>
+                        <div class="widget-content" id="leaders-content"></div>
+                    </div>
+
+                    <!-- NEW: Play-by-Play Widget -->
+                    <div class="widget width-half" data-widget="playbyplay">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Play-by-Play</h3>
+                            <div class="widget-controls">
+                                <div class="resize-btns">
+                                    <span class="resize-btn" onclick="resizeWidget(this, 'full')" title="Full Width">▭</span>
+                                    <span class="resize-btn active" onclick="resizeWidget(this, 'half')" title="Half Width">▯</span>
+                                </div>
+                                <span class="min-btn" onclick="toggleWidget(this)">−</span>
+                                <span class="drag-handle">⋮⋮</span>
+                            </div>
+                        </div>
+                        <div class="widget-content" id="playbyplay-content">
+                            <div class="play-feed" id="play-feed"></div>
+                        </div>
                     </div>
                     
                     <!-- Box scores will be added here dynamically -->
@@ -1896,6 +2142,22 @@
                     widgetsGrid.innerHTML += renderBoxScore(teamData);
                 });
             }
+
+            // FEATURE: Render Team Leaders (hide widget if no data)
+            if (header.leaders && header.leaders.length > 0) {
+                renderTeamLeaders(header.leaders, homeColor, awayColor);
+            } else {
+                const leadersWidget = document.getElementById('leaders-widget');
+                if (leadersWidget) leadersWidget.style.display = 'none';
+            }
+
+            // FEATURE: Render Play-by-Play (hide widget if no data)
+            if (data.plays && data.plays.length > 0) {
+                renderPlayByPlay(data.plays, home, away, homeColor, awayColor);
+            } else {
+                const playByPlayWidget = document.querySelector('[data-widget="playbyplay"]');
+                if (playByPlayWidget) playByPlayWidget.style.display = 'none';
+            }
             
             console.log('Page rendering completed successfully');
         }
@@ -1903,6 +2165,10 @@
         // Render Win Probability Chart
         function renderWinProbChart(probData, homeColor, awayColor, homeName, awayName) {
             const container = document.getElementById('chart-content');
+            if (!container) {
+                console.error('Chart container not found!');
+                return;
+            }
             
             container.innerHTML = `
                 <div class="chart-container">
@@ -1920,7 +2186,15 @@
                 </div>
             `;
 
-            const ctx = document.getElementById('winProbChart').getContext('2d');
+            // Wait for DOM to update and container to have dimensions
+            requestAnimationFrame(() => {
+                const canvas = document.getElementById('winProbChart');
+                if (!canvas) {
+                    console.error('Canvas element not found!');
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
             
             const labels = probData.map((d, i) => i);
             const homeData = probData.map(d => (d.homeWinPercentage * 100));
@@ -1992,6 +2266,7 @@
                     }
                 }
             });
+            }); // Close requestAnimationFrame
         }
 
         // Render Team Comparison
@@ -2041,6 +2316,80 @@
                     `;
                 }
             });
+        }
+
+        // FEATURE: Render Team Leaders
+        function renderTeamLeaders(leaders, homeColor, awayColor) {
+            const container = document.getElementById('leaders-content');
+            if (!container) return;
+
+            let html = '<div class="leaders-grid">';
+
+            leaders.forEach(leaderCategory => {
+                const categoryLeaders = leaderCategory.leaders || [];
+                const displayName = leaderCategory.displayName || leaderCategory.name || 'Leader';
+
+                categoryLeaders.forEach(leader => {
+                    if (!leader.athlete) return; // Skip if no athlete data
+                    
+                    const athlete = leader.athlete;
+                    const value = leader.displayValue || '0';
+                    const teamColor = athlete.team?.id ? (athlete.team.id === 'home' ? homeColor : awayColor) : 'var(--text-primary)';
+                    
+                    html += `
+                        <div class="leader-item">
+                            ${athlete.headshot?.href ? `<img src="${athlete.headshot.href}" class="leader-headshot" alt="${athlete.displayName}">` : '<div class="leader-headshot" style="background: var(--bg-primary);"></div>'}
+                            <div class="leader-info">
+                                <div class="leader-name" style="color: ${teamColor}">${athlete.displayName || 'Unknown'}</div>
+                                <div class="leader-stat-label">${displayName}</div>
+                            </div>
+                            <div class="leader-stat-value">${value}</div>
+                        </div>
+                    `;
+                });
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // FEATURE: Render Play-by-Play
+        function renderPlayByPlay(plays, home, away, homeColor, awayColor) {
+            const container = document.getElementById('play-feed');
+            if (!container) return;
+
+            // Take last 20 plays and reverse for newest first
+            const recentPlays = plays.slice(-20).reverse();
+            
+            let html = '';
+            recentPlays.forEach(play => {
+                const isScoringPlay = play.scoringPlay || play.scoreValue > 0;
+                const teamId = play.team?.id;
+                const teamColor = teamId === home.id ? homeColor : teamId === away.id ? awayColor : 'var(--text-primary)';
+                const teamName = teamId === home.id ? home.team.abbreviation : teamId === away.id ? away.team.abbreviation : '';
+                
+                const time = play.clock?.displayValue || play.period?.displayValue || '';
+                const text = play.text || '';
+                const scoreAfter = play.homeScore !== undefined && play.awayScore !== undefined 
+                    ? `${away.team.abbreviation} ${play.awayScore} - ${play.homeScore} ${home.team.abbreviation}`
+                    : '';
+
+                html += `
+                    <div class="play-item ${isScoringPlay ? 'scoring' : ''}">
+                        <div class="play-time">${time}</div>
+                        <div class="play-content">
+                            ${teamName ? `<div class="play-team" style="color: ${teamColor}">${teamName}</div>` : ''}
+                            <div class="play-text">${text}</div>
+                            ${scoreAfter ? `<div class="play-score">${scoreAfter}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html || '<div style="text-align: center; padding: 20px; color: var(--text-tertiary);">No plays available</div>';
+            
+            // Auto-scroll to top (newest plays)
+            container.scrollTop = 0;
         }
 
         // Render Box Score Table

@@ -506,6 +506,30 @@
             font-family: 'Space Mono', monospace;
         }
 
+        /* FEATURE: Betting Odds */
+        .betting-odds {
+            display: flex;
+            gap: 16px;
+            padding: 8px 16px;
+            background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+            border-left: 3px solid var(--accent-primary);
+            margin: 8px 0;
+            font-size: 0.75rem;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .odds-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-primary);
+        }
+
+        .odds-label {
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+
         /* Team Row */
         .team-row {
             display: flex;
@@ -1034,7 +1058,7 @@
 
         // Event Listeners
         sportSelect.addEventListener('change', handleSportChange);
-        conferenceFilter.addEventListener('change', renderGames);
+        conferenceFilter.addEventListener('change', () => renderGames(false));
 
         // Theme Management
         function loadTheme() {
@@ -1170,14 +1194,27 @@
                 return new Date(a.date) - new Date(b.date);
             });
 
-            // SEAMLESS UPDATE: Only update changed content
+            // SEAMLESS UPDATE: Handle filter changes properly
             if (silent) {
-                visibleEvents.forEach((event, index) => {
+                // Check if we need to rebuild due to filter changes
+                const currentCardCount = scoreboard.querySelectorAll('.match-card').length;
+                const shouldRebuild = currentCardCount !== visibleEvents.length;
+                
+                if (shouldRebuild) {
+                    // Filter changed - rebuild scoreboard
+                    scoreboard.innerHTML = '';
+                    visibleEvents.forEach(event => {
+                        scoreboard.appendChild(createGameCard(event, currentSport));
+                    });
+                } else {
+                    // Same number of games - just update in place
+                    visibleEvents.forEach((event, index) => {
                     const existingCard = scoreboard.querySelector(`[data-game-id="${event.id}"]`);
                     if (existingCard) {
                         updateGameCardInPlace(existingCard, event, currentSport);
                     }
                 });
+                }
             } else {
                 // Initial render - clear and build
                 scoreboard.innerHTML = '';
@@ -1271,6 +1308,20 @@
             const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
             const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
 
+            // FEATURE: Extract betting odds if available
+            const odds = competition.odds?.[0];
+            let oddsHTML = '';
+            if (odds && isPre) {
+                const spread = odds.details || '';
+                const overUnder = odds.overUnder || '';
+                oddsHTML = `
+                    <div class="betting-odds">
+                        ${spread ? `<span class="odds-item"><span class="odds-label">Spread:</span> ${spread}</span>` : ''}
+                        ${overUnder ? `<span class="odds-item"><span class="odds-label">O/U:</span> ${overUnder}</span>` : ''}
+                    </div>
+                `;
+            }
+
             const cardLink = document.createElement('a');
             cardLink.className = `match-card ${isLive ? 'live' : ''}`;
             cardLink.href = `game.html?id=${gameId}&sport=${sportPath}`;
@@ -1284,6 +1335,7 @@
                     </span>
                     <span class="game-time">${formatDate(event.date)}</span>
                 </div>
+                ${oddsHTML}
                 ${renderTeamRow(awayTeam, homeTeam, isFinished, isPre)}
                 ${renderTeamRow(homeTeam, awayTeam, isFinished, isPre)}
             `;
