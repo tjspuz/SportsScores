@@ -2041,36 +2041,16 @@
         let gameData = null;
         let widgetOrder = [];
 
-        // Theme Management
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-
+        // Theme Management (simplified - no toggle button, just loads saved theme)
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
         }
 
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-
-        function updateThemeIcon(theme) {
-            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-        }
-
-        themeToggle.addEventListener('click', toggleTheme);
-
-        // Display Size Control
+        // Display Size Control (keep for localStorage compatibility)
         function setDisplaySize(size) {
             document.documentElement.setAttribute('data-display-size', size);
             localStorage.setItem('displaySize', size);
-            const select = document.getElementById('display-size-select');
-            if (select) select.value = size;
         }
 
         function loadDisplaySize() {
@@ -2080,21 +2060,6 @@
 
         // Load display size on page load
         loadDisplaySize();
-
-        // NEW: Split View Toggle
-        const splitViewBtn = document.getElementById('split-view-btn');
-        
-        function toggleSplitView() {
-            const boxSection = document.getElementById('boxscores');
-            if (boxSection) {
-                boxSection.classList.toggle('split-view');
-                splitViewBtn.classList.toggle('active');
-            }
-        }
-        
-        if (splitViewBtn) {
-            splitViewBtn.addEventListener('click', toggleSplitView);
-        }
 
         // NEW: Header Toggle (Compact/Ticker Mode)
         window.toggleHeader = function() {
