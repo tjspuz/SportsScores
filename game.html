@@ -1136,7 +1136,7 @@
         .widgets-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr); /* 12-column grid for flexibility */
-            gap: 20px;
+            gap: 24px; /* Fix #1: Standardized gap for consistent spacing */
             margin-bottom: 32px;
             align-items: start;
         }
@@ -1865,9 +1865,10 @@
         .player-cell {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 0; /* Fix #2: No gap needed without headshot */
         }
 
+        /* Fix #2: Keep headshot styles for backwards compatibility but won't be used */
         .player-headshot {
             width: 36px;
             height: 36px;
@@ -2962,21 +2963,33 @@
 
         // Fix #5: Render Game Flow Chart (ESPN-style cumulative scoring)
         function renderGameFlow(away, home, awayColor, homeColor) {
+            console.log('renderGameFlow called', { away, home });
             const canvas = document.getElementById('gameFlowChart');
-            if (!canvas) return;
+            if (!canvas) {
+                console.error('Game Flow canvas not found');
+                return;
+            }
 
             const awayLinescores = away.linescores || [];
             const homeLinescores = home.linescores || [];
+
+            console.log('Line scores:', { awayLinescores, homeLinescores });
 
             if (awayLinescores.length === 0) {
                 const container = canvas.parentElement;
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--text-tertiary);">
                         <div style="font-size: 2rem; margin-bottom: 12px;">📈</div>
-                        <div>Game flow data not available</div>
+                        <div>Game flow data not available yet</div>
                     </div>
                 `;
                 return;
+            }
+
+            // Fix #3: Destroy existing chart if present
+            const existingChart = Chart.getChart(canvas);
+            if (existingChart) {
+                existingChart.destroy();
             }
 
             // Build cumulative scores for each period
@@ -3009,6 +3022,8 @@
                 }
                 labels.push(label);
             });
+
+            console.log('Game flow data:', { labels, awayData, homeData });
 
             const ctx = canvas.getContext('2d');
 
@@ -3116,15 +3131,15 @@
 
             // Fix #2: Updated stats list - FG%, 3PT%, FT%, REB, AST, STL, BLK, TO, PF
             const statsToShow = [
-                { key: 'FG%', label: 'Field Goal %' },
-                { key: '3PT%', label: '3-Point %' },
-                { key: 'FT%', label: 'Free Throw %' },
-                { key: 'REB', label: 'Rebounds' },
-                { key: 'AST', label: 'Assists' },
-                { key: 'STL', label: 'Steals' },
-                { key: 'BLK', label: 'Blocks' },
-                { key: 'TO', label: 'Turnovers' },
-                { key: 'PF', label: 'Fouls' }
+                { key: 'FG%', label: 'Field Goal %', includeRatio: true },
+                { key: '3PT%', label: '3-Point %', includeRatio: false },
+                { key: 'FT%', label: 'Free Throw %', includeRatio: true },
+                { key: 'REB', label: 'Rebounds', includeRatio: false },
+                { key: 'AST', label: 'Assists', includeRatio: false },
+                { key: 'STL', label: 'Steals', includeRatio: false },
+                { key: 'BLK', label: 'Blocks', includeRatio: false },
+                { key: 'TO', label: 'Turnovers', includeRatio: false },
+                { key: 'PF', label: 'Fouls', includeRatio: false }
             ];
 
             // Build table structure similar to player stats
@@ -3145,11 +3160,37 @@
                 const aStat = findStat(awayStats, stat.key);
 
                 if (hStat && aStat) {
+                    // Fix #4: For FG% and FT%, find and append the made-attempted ratio
+                    let awayDisplay = aStat.displayValue;
+                    let homeDisplay = hStat.displayValue;
+
+                    if (stat.includeRatio) {
+                        // Find the corresponding made-attempted stat
+                        let ratioKey = '';
+                        if (stat.key === 'FG%') {
+                            ratioKey = 'fieldGoalsMade-fieldGoalsAttempted';
+                        } else if (stat.key === 'FT%') {
+                            ratioKey = 'freeThrowsMade-freeThrowsAttempted';
+                        }
+
+                        if (ratioKey) {
+                            const awayRatio = findStat(awayStats, ratioKey);
+                            const homeRatio = findStat(homeStats, ratioKey);
+                            
+                            if (awayRatio) {
+                                awayDisplay += ` (${awayRatio.displayValue})`;
+                            }
+                            if (homeRatio) {
+                                homeDisplay += ` (${homeRatio.displayValue})`;
+                            }
+                        }
+                    }
+
                     html += `
                         <tr>
                             <td style="font-weight: 600;">${stat.label}</td>
-                            <td style="text-align: center; color: ${awayColor}; font-family: 'Space Mono', monospace; font-weight: 700;">${aStat.displayValue}</td>
-                            <td style="text-align: center; color: ${homeColor}; font-family: 'Space Mono', monospace; font-weight: 700;">${hStat.displayValue}</td>
+                            <td style="text-align: center; color: ${awayColor}; font-family: 'Space Mono', monospace; font-weight: 700;">${awayDisplay}</td>
+                            <td style="text-align: center; color: ${homeColor}; font-family: 'Space Mono', monospace; font-weight: 700;">${homeDisplay}</td>
                         </tr>
                     `;
                 }
@@ -3308,7 +3349,8 @@
                     : fullName;
                 
                 const pos = p.athlete.position?.abbreviation || '';
-                const img = p.athlete.headshot?.href || '';
+                // Fix #2: Get jersey number instead of headshot
+                const jersey = p.athlete.jersey || '';
                 
                 // Reorder stats according to ESPN order
                 const orderedStats = statIndices.map(idx => {
@@ -3378,9 +3420,8 @@
                     <tr>
                         <td>
                             <div class="player-cell">
-                                ${img ? `<img src="${img}" class="player-headshot" onerror="this.style.display='none'">` : ''}
                                 <div class="player-info">
-                                    <div class="player-name">${formattedName}</div>
+                                    <div class="player-name">${jersey ? `#${jersey} ` : ''}${formattedName}</div>
                                     <div class="player-position">${pos}</div>
                                 </div>
                             </div>
