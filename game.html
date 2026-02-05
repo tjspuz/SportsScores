@@ -298,144 +298,187 @@
             border-color: var(--accent-primary);
         }
 
-        /* TV MODE - Comprehensive scaling for 10+ foot viewing */
+        /* TV MODE - ULTRA LARGE for 10+ foot viewing */
         [data-display-size="tv"] {
-            font-size: 22px; /* Base font size increase */
+            font-size: 28px; /* Base font size increase - was 22px, now 28px */
         }
 
         /* TV: Matchup Header */
         [data-display-size="tv"] .team-logo-large {
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
         }
 
         [data-display-size="tv"] .team-name-large {
-            font-size: 3rem;
+            font-size: 3.5rem;
         }
 
         [data-display-size="tv"] .team-record-large {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
         }
 
         [data-display-size="tv"] .scores {
-            font-size: 5.5rem;
+            font-size: 6.5rem;
         }
 
         [data-display-size="tv"] .game-status {
-            font-size: 1.6rem;
-            padding: 12px 24px;
+            font-size: 2rem;
+            padding: 16px 32px;
         }
 
         [data-display-size="tv"] .team-rank {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
         }
 
         /* TV: Line Score Table */
         [data-display-size="tv"] .line-score th,
         [data-display-size="tv"] .line-score td {
-            padding: 20px;
-            font-size: 1.4rem;
-        }
-
-        /* TV: Widget Headers */
-        [data-display-size="tv"] .widget-title {
+            padding: 24px;
             font-size: 1.8rem;
         }
 
+        /* TV: Widget Headers - MUCH BIGGER */
+        [data-display-size="tv"] .widget-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
         [data-display-size="tv"] .widget-header {
-            padding: 24px 28px;
+            padding: 28px 32px;
         }
 
         [data-display-size="tv"] .widget-content {
-            padding: 28px;
+            padding: 32px;
         }
 
-        /* TV: Box Score Tables */
+        /* TV: Box Score Tables - THE MOST IMPORTANT PART */
         [data-display-size="tv"] table {
-            font-size: 1.3rem;
+            font-size: 1.8rem; /* Was 1.3rem - NOW MUCH BIGGER */
         }
 
         [data-display-size="tv"] th {
-            padding: 20px 18px;
-            font-size: 1.1rem;
+            padding: 24px 20px; /* Was 20px 18px */
+            font-size: 1.5rem; /* Was 1.1rem - BIGGER HEADERS */
+            letter-spacing: 0.08em;
         }
 
         [data-display-size="tv"] td {
-            padding: 18px 16px;
-            font-size: 1.3rem;
+            padding: 24px 20px; /* Was 18px 16px - MORE SPACING */
+            font-size: 1.8rem; /* Was 1.3rem - MUCH BIGGER STATS */
+            font-weight: 700; /* Bolder for readability */
         }
 
         [data-display-size="tv"] .player-name {
-            font-size: 1.4rem;
+            font-size: 1.9rem; /* Was 1.4rem - BIGGER NAMES */
+            font-weight: 800;
         }
 
         [data-display-size="tv"] .player-position {
-            font-size: 1rem;
+            font-size: 1.3rem; /* Was 1rem */
         }
 
         [data-display-size="tv"] .player-img {
-            width: 52px;
-            height: 52px;
+            width: 64px; /* Was 52px */
+            height: 64px;
+        }
+
+        /* TV: Make totals row stand out more */
+        [data-display-size="tv"] tfoot td {
+            font-size: 2rem; /* Even bigger for totals */
+            font-weight: 900;
+            padding: 28px 20px;
         }
 
         /* TV: Team Comparison Stats */
         [data-display-size="tv"] .stat-label {
-            font-size: 1.2rem;
+            font-size: 1.6rem; /* Was 1.2rem */
+            font-weight: 700;
         }
 
         [data-display-size="tv"] .stat-value {
-            font-size: 1.8rem;
+            font-size: 2.4rem; /* Was 1.8rem */
+            font-weight: 900;
         }
 
         /* TV: Play-by-Play */
         [data-display-size="tv"] .play-item {
-            padding: 18px;
+            padding: 22px;
         }
 
         [data-display-size="tv"] .play-time {
-            font-size: 1.2rem;
-            min-width: 65px;
+            font-size: 1.5rem; /* Was 1.2rem */
+            min-width: 80px;
+            font-weight: 700;
         }
 
         [data-display-size="tv"] .play-team {
-            font-size: 1.3rem;
+            font-size: 1.7rem; /* Was 1.3rem */
+            font-weight: 800;
         }
 
         [data-display-size="tv"] .play-text {
-            font-size: 1.2rem;
+            font-size: 1.5rem; /* Was 1.2rem */
+            line-height: 1.5;
         }
 
         /* TV: Team Leaders */
         [data-display-size="tv"] .leader-headshot {
-            width: 72px;
-            height: 72px;
+            width: 88px; /* Was 72px */
+            height: 88px;
         }
 
         [data-display-size="tv"] .leader-name {
-            font-size: 1.4rem;
+            font-size: 1.8rem; /* Was 1.4rem */
+            font-weight: 800;
         }
 
         [data-display-size="tv"] .leader-stat-value {
-            font-size: 2rem;
+            font-size: 2.6rem; /* Was 2rem */
+            font-weight: 900;
         }
 
         [data-display-size="tv"] .leader-stat-label {
-            font-size: 1rem;
+            font-size: 1.3rem; /* Was 1rem */
+            font-weight: 700;
         }
 
         /* TV: Navigation */
         [data-display-size="tv"] nav {
-            padding: 20px 32px;
+            padding: 24px 36px;
         }
 
         [data-display-size="tv"] .back-btn {
-            font-size: 1.4rem;
+            font-size: 1.8rem; /* Was 1.4rem */
         }
 
         [data-display-size="tv"] .layout-toggle,
         [data-display-size="tv"] .display-size-select {
-            font-size: 1.2rem;
+            font-size: 1.5rem; /* Was 1.2rem */
+            padding: 14px 24px;
+        }
+
+        /* TV: Betting Odds */
+        [data-display-size="tv"] .odds-chip {
+            font-size: 1.4rem;
             padding: 12px 20px;
+        }
+
+        [data-display-size="tv"] .odds-label {
+            font-size: 1.2rem;
+        }
+
+        /* TV: Win Probability Chart */
+        [data-display-size="tv"] .chart-container {
+            height: 500px; /* Taller chart */
+        }
+
+        /* TV: Possession Indicator */
+        [data-display-size="tv"] .possession-ball {
+            font-size: 3rem; /* Was 2rem - BIGGER BASKETBALL */
+        }
+
+        [data-display-size="tv"] .timeout-indicator {
+            font-size: 1.4rem;
         }
 
         /* LARGE MODE - Moderate scaling */
