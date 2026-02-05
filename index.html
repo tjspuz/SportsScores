@@ -1178,7 +1178,7 @@
                     <span>⚙️</span>
                 </button>
 
-                <select id="conference-filter">
+                <select id="conference-filter" style="display: none;">
                     <option value="all">All Teams</option>
                     <option value="top25">Top 25</option>
                     <option value="ncaa-d1">NCAA Div 1</option>
@@ -1190,6 +1190,7 @@
                 </select>
 
                 <select id="sport-select">
+                    <option value="all">🏆 ALL SPORTS</option>
                     <option value="basketball/mens-college-basketball">🏀 NCAA Men's BB</option>
                     <option value="basketball/womens-college-basketball">🏀 NCAA Women's BB</option>
                     <option value="basketball/nba">🏀 NBA</option>
@@ -1406,6 +1407,38 @@
         // Sport Change Handler
         function handleSportChange() {
             const sport = sportSelect.value;
+            const conferenceFilter = document.getElementById('conference-filter');
+
+            // Fix #4: Show/hide conference filter based on sport selection
+            if (sport.includes('college-basketball')) {
+                conferenceFilter.style.display = 'block';
+            } else {
+                conferenceFilter.style.display = 'none';
+            }
+
+            // Fix #4: Handle "ALL" sports option
+            if (sport === 'all') {
+                scoreboard.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading all sports...</div>
+                    </div>
+                `;
+                
+                currentEvents = [];
+                
+                // Clear existing interval
+                if (refreshInterval) clearInterval(refreshInterval);
+                
+                // Fetch all sports
+                fetchAllSports();
+                
+                // Set up auto-refresh for all sports
+                refreshInterval = setInterval(() => {
+                    fetchAllSports(true);
+                }, REFRESH_RATE);
+                return;
+            }
 
             scoreboard.innerHTML = `
                 <div class="loading">
@@ -1426,6 +1459,68 @@
             refreshInterval = setInterval(() => {
                 fetchScores(sport, true);
             }, REFRESH_RATE);
+        }
+
+        // Fix #4: Fetch all sports
+        async function fetchAllSports(silent = false) {
+            const sports = [
+                'basketball/mens-college-basketball',
+                'basketball/womens-college-basketball',
+                'basketball/nba',
+                'football/nfl',
+                'baseball/mlb',
+                'hockey/nhl'
+            ];
+
+            try {
+                const lastUpdatedEl = document.getElementById('last-updated');
+                if (!silent && lastUpdatedEl) lastUpdatedEl.innerText = "Fetching...";
+
+                // Fetch all sports in parallel
+                const promises = sports.map(sport => 
+                    fetch(`${BASE_URL}${sport}/scoreboard?limit=100`)
+                        .then(res => res.json())
+                        .then(data => ({ sport, events: data.events || [] }))
+                        .catch(err => ({ sport, events: [] }))
+                );
+
+                const results = await Promise.all(promises);
+                
+                // Combine all events and add sport info
+                currentEvents = [];
+                results.forEach(result => {
+                    result.events.forEach(event => {
+                        event._sportPath = result.sport; // Add sport path for navigation
+                        currentEvents.push(event);
+                    });
+                });
+
+                // Sort by date/time
+                currentEvents.sort((a, b) => {
+                    const aLive = a.status.type.state === 'in' ? 1 : 0;
+                    const bLive = b.status.type.state === 'in' ? 1 : 0;
+                    if (aLive !== bLive) return bLive - aLive;
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                renderGames(silent);
+
+                if (lastUpdatedEl) {
+                    const now = new Date();
+                    lastUpdatedEl.innerText = `Updated ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
+                }
+            } catch (error) {
+                console.error("Error fetching all sports:", error);
+                if (!silent) {
+                    scoreboard.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div class="empty-state-title">Connection Error</div>
+                            <div class="empty-state-text">Unable to fetch scores.</div>
+                        </div>
+                    `;
+                }
+            }
         }
 
         // Fetch Scores
@@ -1634,6 +1729,9 @@
             const isPre = event.status.type.state === 'pre'; // FIX #2: Detect pre-game
             const gameId = event.id;
             
+            // Fix #4: Use event._sportPath if available (for ALL sports view)
+            const actualSportPath = event._sportPath || sportPath;
+            
             const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
             const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
 
@@ -1653,7 +1751,7 @@
 
             const cardLink = document.createElement('a');
             cardLink.className = `match-card ${isLive ? 'live' : ''}`;
-            cardLink.href = `game.html?id=${gameId}&sport=${sportPath}`;
+            cardLink.href = `game.html?id=${gameId}&sport=${actualSportPath}`;
             cardLink.setAttribute('data-game-id', gameId);
             cardLink.style.animationDelay = `${Math.random() * 0.1}s`;
 
