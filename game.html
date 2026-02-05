@@ -613,8 +613,18 @@
 
         .team-section-compact {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 8px;
+        }
+
+        /* Fix #1: Team record display below logos */
+        .team-record-display {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-family: 'Space Mono', monospace;
+            font-weight: 600;
         }
 
         /* Enhancement #2: Center section */
@@ -1153,6 +1163,16 @@
             animation: fadeIn 0.4s ease-out;
             position: relative;
             min-height: 200px;
+            /* Fix #2: Use flexbox to ensure consistent height */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fix #2: Make widget content grow to fill available space */
+        .widget-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Chart widgets get full width for better visibility */
@@ -2336,6 +2356,13 @@
             // Update line scores if they exist
             if (away.linescores && home.linescores) {
                 updateLineScores(away, home);
+                
+                // Fix #3: Update Game Flow chart when line scores update
+                const homeColor = '#' + (home.team.color || '00d9ff');
+                const awayColor = '#' + (away.team.color || 'ff006e');
+                requestAnimationFrame(() => {
+                    renderGameFlow(away, home, awayColor, homeColor);
+                });
             }
 
             // Update box scores if they exist
@@ -2679,6 +2706,7 @@
                         <!-- Away Team Logo -->
                         <div class="team-section-compact away">
                             <img src="${awayLogo}" class="team-logo-large" alt="${away.team.name}">
+                            ${awayRecord ? `<div class="team-record-display">${awayRecord}</div>` : ''}
                         </div>
                         
                         <!-- Center content -->
@@ -2710,6 +2738,7 @@
                         <!-- Home Team Logo -->
                         <div class="team-section-compact home">
                             <img src="${homeLogo}" class="team-logo-large" alt="${home.team.name}">
+                            ${homeRecord ? `<div class="team-record-display">${homeRecord}</div>` : ''}
                         </div>
                     </div>
                     
@@ -2747,7 +2776,9 @@
                             </div>
                         </div>
                         <div class="widget-content">
-                            <canvas id="gameFlowChart"></canvas>
+                            <div class="chart-container">
+                                <canvas id="gameFlowChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -2820,7 +2851,9 @@
             }
 
             // Fix #5: Render Game Flow Chart
-            renderGameFlow(away, home, awayColor, homeColor);
+            requestAnimationFrame(() => {
+                renderGameFlow(away, home, awayColor, homeColor);
+            });
 
             // Render Team Comparison
             if (data.boxscore && data.boxscore.teams) {
