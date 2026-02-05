@@ -1009,6 +1009,113 @@
             font-size: 0.85rem;
         }
 
+        /* Display Size Options */
+        .display-size-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .size-option {
+            padding: 16px 12px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .size-option:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .size-option.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .size-option-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .size-option-label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .size-option-desc {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        /* TV MODE - Large text scaling */
+        [data-display-size="tv"] {
+            font-size: 20px; /* Base font increase */
+        }
+
+        [data-display-size="tv"] .match-card {
+            padding: 28px;
+        }
+
+        [data-display-size="tv"] .team-logo {
+            width: 56px;
+            height: 56px;
+        }
+
+        [data-display-size="tv"] .team-name {
+            font-size: 1.6rem;
+        }
+
+        [data-display-size="tv"] .team-score {
+            font-size: 2.8rem;
+        }
+
+        [data-display-size="tv"] .rank-badge {
+            font-size: 1.1rem;
+            padding: 6px 12px;
+        }
+
+        [data-display-size="tv"] .status-bar {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        [data-display-size="tv"] header h1 {
+            font-size: 3rem;
+        }
+
+        /* LARGE MODE - Moderate scaling */
+        [data-display-size="large"] {
+            font-size: 18px;
+        }
+
+        [data-display-size="large"] .match-card {
+            padding: 24px;
+        }
+
+        [data-display-size="large"] .team-logo {
+            width: 48px;
+            height: 48px;
+        }
+
+        [data-display-size="large"] .team-name {
+            font-size: 1.3rem;
+        }
+
+        [data-display-size="large"] .team-score {
+            font-size: 2.2rem;
+        }
+
+        [data-display-size="large"] header h1 {
+            font-size: 2.5rem;
+        }
+
     </style>
 </head>
 <body>
@@ -1069,6 +1176,27 @@
                 <span class="range-value" id="columns-value">Auto</span>
                 <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 8px;">
                     Auto adjusts based on screen size. Manual sets fixed columns.
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label>Display Size</label>
+                <div class="display-size-options">
+                    <div class="size-option active" onclick="setDisplaySize('normal')" data-size="normal">
+                        <div class="size-option-icon">💻</div>
+                        <div class="size-option-label">Normal</div>
+                        <div class="size-option-desc">Desktop/Laptop</div>
+                    </div>
+                    <div class="size-option" onclick="setDisplaySize('large')" data-size="large">
+                        <div class="size-option-icon">🖥️</div>
+                        <div class="size-option-label">Large</div>
+                        <div class="size-option-desc">Large Monitor</div>
+                    </div>
+                    <div class="size-option" onclick="setDisplaySize('tv')" data-size="tv">
+                        <div class="size-option-icon">📺</div>
+                        <div class="size-option-label">TV Mode</div>
+                        <div class="size-option-desc">10+ ft viewing</div>
+                    </div>
                 </div>
             </div>
 
@@ -1192,9 +1320,30 @@
             });
         }
 
+        // Display Size Control
+        function setDisplaySize(size) {
+            document.documentElement.setAttribute('data-display-size', size);
+            localStorage.setItem('displaySize', size);
+            
+            // Update active state
+            document.querySelectorAll('.size-option').forEach(opt => {
+                if (opt.dataset.size === size) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+        }
+
+        function loadDisplaySize() {
+            const savedSize = localStorage.getItem('displaySize') || 'normal';
+            setDisplaySize(savedSize);
+        }
+
         // Initialize
         loadTheme();
         loadGridSettings();
+        loadDisplaySize();
         handleSportChange();
 
         // Event Listeners
