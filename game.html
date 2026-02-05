@@ -2596,9 +2596,12 @@
             const awayRank = away.curatedRank?.current <= 25 ? away.curatedRank.current : null;
             const homeRank = home.curatedRank?.current <= 25 ? home.curatedRank.current : null;
 
-            // Get records
-            const awayRecord = away.records?.[0]?.summary || '';
-            const homeRecord = home.records?.[0]?.summary || '';
+            // Get records - DEBUG
+            console.log('Away records data:', away.records);
+            console.log('Home records data:', home.records);
+            const awayRecord = away.records?.[0]?.summary || away.record?.displayValue || '';
+            const homeRecord = home.records?.[0]?.summary || home.record?.displayValue || '';
+            console.log('Extracted records:', { awayRecord, homeRecord });
 
             // Get venue information
             const venue = header.venue?.fullName || '';
@@ -2680,11 +2683,29 @@
             }
 
             // Fix #6: Extract betting odds - show spread, total, and moneyline
-            const odds = header.odds?.[0];
-            const spread = odds?.details || '';
-            const overUnder = odds?.overUnder || '';
-            const awayMoneyLine = odds?.awayTeamOdds?.moneyLine;
-            const homeMoneyLine = odds?.homeTeamOdds?.moneyLine;
+            console.log('Odds data:', header.odds);
+            const competitionOdds = header.odds?.[0];
+            console.log('Competition odds object:', competitionOdds);
+            
+            // Also check for odds on the competitors themselves
+            const awayOdds = away.odds?.[0];
+            const homeOdds = home.odds?.[0];
+            console.log('Away odds:', awayOdds);
+            console.log('Home odds:', homeOdds);
+            
+            // Try multiple paths for odds data
+            const spread = competitionOdds?.details || competitionOdds?.spread || '';
+            const overUnder = competitionOdds?.overUnder || '';
+            
+            // Get spread values from team odds if available
+            const awaySpreadValue = awayOdds?.spread || away.odds?.[0]?.value || '';
+            const homeSpreadValue = homeOdds?.spread || home.odds?.[0]?.value || '';
+            
+            // Get moneyline
+            const awayMoneyLine = competitionOdds?.awayTeamOdds?.moneyLine || awayOdds?.moneyLine;
+            const homeMoneyLine = competitionOdds?.homeTeamOdds?.moneyLine || homeOdds?.moneyLine;
+            
+            console.log('Extracted odds:', { spread, overUnder, awaySpreadValue, homeSpreadValue, awayMoneyLine, homeMoneyLine });
             
             // Enhancement #2: Determine winner for final games
             const isFinished = header.status.type.completed;
@@ -2725,12 +2746,12 @@
                             </div>
                             
                             <!-- Fix #6: Betting odds persist after game ends - show spread, total, moneyline -->
-                            ${(spread || overUnder || awayMoneyLine || homeMoneyLine) ? `
+                            ${(spread || overUnder || awaySpreadValue || homeSpreadValue || awayMoneyLine || homeMoneyLine) ? `
                                 <div class="betting-line">
-                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${spread}</span>` : ''}
+                                    ${(spread || awaySpreadValue) ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${awaySpreadValue || spread}</span>` : ''}
                                     ${overUnder ? `<span class="odds-text">TOTAL ${overUnder}</span>` : ''}
-                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> -${spread.replace('+', '')}</span>` : ''}
-                                    ${awayMoneyLine ? `<span class="odds-text" style="font-size: 0.85rem;">ML: ${awayMoneyLine > 0 ? '+' : ''}${awayMoneyLine} / ${homeMoneyLine > 0 ? '+' : ''}${homeMoneyLine}</span>` : ''}
+                                    ${(spread || homeSpreadValue) ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> ${homeSpreadValue || '-' + spread.replace('+', '')}</span>` : ''}
+                                    ${(awayMoneyLine && homeMoneyLine) ? `<span class="odds-text" style="font-size: 0.85rem;">ML: ${awayMoneyLine > 0 ? '+' : ''}${awayMoneyLine} / ${homeMoneyLine > 0 ? '+' : ''}${homeMoneyLine}</span>` : ''}
                                 </div>
                             ` : ''}
                         </div>
