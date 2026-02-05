@@ -1435,7 +1435,7 @@
                 const lastUpdatedEl = document.getElementById('last-updated');
                 if (!silent && lastUpdatedEl) lastUpdatedEl.innerText = "Fetching...";
 
-                const response = await fetch(`${BASE_URL}${sportPath}/scoreboard?limit=300`);
+                const response = await fetch(`${BASE_URL}${sportPath}/scoreboard?limit=300&groups=50`);
                 const data = await response.json();
                 currentEvents = data.events || [];
                 renderGames(silent);

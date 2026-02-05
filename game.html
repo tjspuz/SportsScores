@@ -216,10 +216,22 @@
         .nav-content {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 16px 24px;
+            padding: 8px 24px; /* Reduced from 16px to 8px - 50% reduction */
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+        }
+
+        /* Enhancement #1: Centered date */
+        .nav-date {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
         }
 
         .back-btn {
@@ -229,9 +241,10 @@
             color: var(--text-secondary);
             text-decoration: none;
             font-weight: 600;
-            padding: 8px 16px;
+            padding: 6px 12px; /* Reduced padding */
             border-radius: 8px;
             transition: all var(--transition-speed);
+            font-size: 1.5rem; /* Larger arrow */
         }
 
         .back-btn:hover {
@@ -573,6 +586,127 @@
             animation: slideDown 0.4s ease-out;
             position: relative;
             transition: all 0.3s ease;
+        }
+
+        /* Enhancement #2: Corner records */
+        .corner-records {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* Enhancement #2: Main matchup layout */
+        .matchup-main {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 32px;
+            align-items: center;
+            margin-top: 24px;
+        }
+
+        .team-section-compact {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Enhancement #2: Center section */
+        .center-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .game-date {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .scores-container {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .score-item {
+            position: relative;
+        }
+
+        /* Enhancement #2: Winner glow effect */
+        .score-item.winner .score-large {
+            text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+            }
+            50% { 
+                text-shadow: 0 0 40px currentColor, 0 0 80px currentColor, 0 0 100px currentColor;
+            }
+        }
+
+        .score-large {
+            font-size: 4rem;
+            font-weight: 900;
+            font-family: 'Space Mono', monospace;
+            line-height: 1;
+        }
+
+        .status-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-status-large {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        .game-status-large.live {
+            color: var(--live-color);
+            border-color: var(--live-color);
+            animation: pulse-border 2s infinite;
+        }
+
+        /* Enhancement #2: Betting line at bottom */
+        .betting-line {
+            display: flex;
+            gap: 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .odds-text {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .odds-abbr {
+            color: var(--accent-primary);
+            font-weight: 700;
         }
 
         /* NEW: Compact/Ticker Mode */
@@ -1865,22 +1999,10 @@
     
     <nav>
         <div class="nav-content">
-            <a href="index.html" class="back-btn">
+            <a href="index.html" class="back-btn" title="Back to Scores">
                 <span>←</span>
-                <span>Back to Scores</span>
             </a>
-            <div class="nav-controls">
-                <button class="layout-toggle" id="split-view-btn">Split View</button>
-                <select class="display-size-select" id="display-size-select" onchange="setDisplaySize(this.value)">
-                    <option value="normal">💻 Normal</option>
-                    <option value="large">🖥️ Large</option>
-                    <option value="tv">📺 TV Mode</option>
-                </select>
-                <div class="theme-toggle" id="theme-toggle">
-                    <span id="theme-icon">🌙</span>
-                </div>
-                <button class="layout-toggle" id="reset-layout">Reset Layout</button>
-            </div>
+            <div class="nav-date" id="nav-date">Thu Feb 5</div>
         </div>
     </nav>
 
@@ -2030,8 +2152,25 @@
 
         // Initialize
         loadTheme();
+        setNavDate();
         let isInitialRender = true;
         fetchGameData();
+
+        // Enhancement #1: Set current date in nav
+        function setNavDate() {
+            const dateEl = document.getElementById('nav-date');
+            if (!dateEl) return;
+            
+            const now = new Date();
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const dayName = days[now.getDay()];
+            const monthName = months[now.getMonth()];
+            const date = now.getDate();
+            
+            dateEl.textContent = `${dayName} ${monthName} ${date}`;
+        }
 
         // Fetch Game Data
         async function fetchGameData() {
@@ -2517,73 +2656,67 @@
 
             // FEATURE: Extract betting odds
             const odds = header.odds?.[0];
-            let oddsHTML = '';
-            if (odds && isPre) {
-                const spread = odds.details || '';
-                const overUnder = odds.overUnder || '';
-                const awayMoneyLine = odds.awayTeamOdds?.moneyLine;
-                const homeMoneyLine = odds.homeTeamOdds?.moneyLine;
-                
-                oddsHTML = `
-                    <div class="matchup-betting-odds">
-                        <div class="odds-section">
-                            <span class="odds-title">Betting Lines</span>
-                            <div class="odds-grid">
-                                ${spread ? `<div class="odds-chip"><span class="odds-label">Spread:</span> ${spread}</div>` : ''}
-                                ${overUnder ? `<div class="odds-chip"><span class="odds-label">O/U:</span> ${overUnder}</div>` : ''}
-                                ${awayMoneyLine ? `<div class="odds-chip"><span class="odds-label">${away.team.abbreviation} ML:</span> ${awayMoneyLine > 0 ? '+' : ''}${awayMoneyLine}</div>` : ''}
-                                ${homeMoneyLine ? `<div class="odds-chip"><span class="odds-label">${home.team.abbreviation} ML:</span> ${homeMoneyLine > 0 ? '+' : ''}${homeMoneyLine}</div>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // FEATURE: Possession indicator
-            const situation = header.situation;
-            const awayHasPossession = situation?.possession === away.id;
-            const homeHasPossession = situation?.possession === home.id;
-            const possessionIcon = '🏀'; // Basketball icon
+            const spread = odds?.details || '';
+            const overUnder = odds?.overUnder || '';
+            const awaySpread = odds?.awayTeamOdds?.spreadOdds;
+            const homeSpread = odds?.homeTeamOdds?.spreadOdds;
             
-            // FEATURE: Timeouts and fouls
-            const awayTimeouts = away.timeoutsRemaining !== undefined ? away.timeoutsRemaining : '';
-            const homeTimeouts = home.timeoutsRemaining !== undefined ? home.timeoutsRemaining : '';
+            // Enhancement #2: Determine winner for final games
+            const isFinished = header.status.type.completed;
+            const awayWon = isFinished && parseInt(awayScore) > parseInt(homeScore);
+            const homeWon = isFinished && parseInt(homeScore) > parseInt(awayScore);
 
             let html = `
                 <div class="matchup-header">
                     <button class="header-toggle-btn" onclick="toggleHeader()">▲</button>
-                    <div class="teams-display">
-                        <div class="team-section away">
+                    
+                    <!-- Records at top corners -->
+                    <div class="corner-records">
+                        <div class="record-corner record-away">${awayRecord || ''}</div>
+                        <div class="record-corner record-home">${homeRecord || ''}</div>
+                    </div>
+                    
+                    <!-- Main content area -->
+                    <div class="matchup-main">
+                        <!-- Away Team Logo -->
+                        <div class="team-section-compact away">
                             <img src="${awayLogo}" class="team-logo-large" alt="${away.team.name}">
-                            <div class="team-name-large" style="color: ${awayColor}">
-                                ${awayHasPossession && isLive ? `<span class="possession-indicator">${possessionIcon}</span>` : ''}
-                                ${awayRank ? `<span class="team-rank">#${awayRank}</span>` : ''}
-                                ${away.team.location || away.team.displayName || away.team.name}
-                            </div>
-                            ${awayRecord ? `<div class="team-record-large">${awayRecord}</div>` : ''}
-                            ${awayTimeouts !== '' && isLive ? `<div class="timeout-indicator">⏱️ ${awayTimeouts} TO</div>` : ''}
                         </div>
-                        <div class="score-display">
-                            <div class="scores">
-                                <span style="color: ${awayColor}">${awayScore}</span>
-                                <span class="dash">-</span>
-                                <span style="color: ${homeColor}">${homeScore}</span>
+                        
+                        <!-- Center content -->
+                        <div class="center-section">
+                            <!-- Game status/date at top -->
+                            <div class="game-date">${header.status.type.shortDetail}</div>
+                            
+                            <!-- Scores with glow for winner -->
+                            <div class="scores-container">
+                                <div class="score-item ${awayWon ? 'winner' : ''}">
+                                    <span class="score-large" style="color: ${awayColor}">${awayScore}</span>
+                                </div>
+                                <div class="status-center">
+                                    <div class="game-status-large ${isLive ? 'live' : ''}">${isFinished ? 'Final' : header.status.type.detail}</div>
+                                </div>
+                                <div class="score-item ${homeWon ? 'winner' : ''}">
+                                    <span class="score-large" style="color: ${homeColor}">${homeScore}</span>
+                                </div>
                             </div>
-                            <div class="game-status ${isLive ? 'live' : ''}">${header.status.type.detail}</div>
+                            
+                            <!-- Betting odds at bottom -->
+                            ${(spread || overUnder) ? `
+                                <div class="betting-line">
+                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${spread}</span>` : ''}
+                                    ${overUnder ? `<span class="odds-text">TOTAL ${overUnder}</span>` : ''}
+                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> -${spread.replace('+', '')}</span>` : ''}
+                                </div>
+                            ` : ''}
                         </div>
-                        <div class="team-section home">
+                        
+                        <!-- Home Team Logo -->
+                        <div class="team-section-compact home">
                             <img src="${homeLogo}" class="team-logo-large" alt="${home.team.name}">
-                            <div class="team-name-large" style="color: ${homeColor}">
-                                ${homeHasPossession && isLive ? `<span class="possession-indicator">${possessionIcon}</span>` : ''}
-                                ${homeRank ? `<span class="team-rank">#${homeRank}</span>` : ''}
-                                ${home.team.location || home.team.displayName || home.team.name}
-                            </div>
-                            ${homeRecord ? `<div class="team-record-large">${homeRecord}</div>` : ''}
-                            ${homeTimeouts !== '' && isLive ? `<div class="timeout-indicator">⏱️ ${homeTimeouts} TO</div>` : ''}
                         </div>
                     </div>
                     
-                    ${oddsHTML}
                     ${lineScoreHtml}
                 </div>
 
@@ -2820,7 +2953,7 @@
             const awayStats = teamsData[0].statistics;
             const homeStats = teamsData[1].statistics;
 
-            const statsToShow = ['FG%', '3PT%', 'FT%', 'REB', 'AST', 'TO'];
+            const statsToShow = ['3PT%', 'REB', 'STL', 'PF'];
 
             statsToShow.forEach(key => {
                 const hStat = findStat(homeStats, key);
