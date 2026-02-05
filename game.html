@@ -441,16 +441,23 @@
         }
 
         /* FEATURE: Possession Indicator */
-        .possession-indicator {
-            display: inline-block;
-            font-size: 1.5rem;
-            margin-right: 8px;
+        .possession-ball {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 2rem;
             animation: bounce-possession 0.6s ease-in-out infinite;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .team-section {
+            position: relative;
         }
 
         @keyframes bounce-possession {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-8px) rotate(5deg); }
         }
 
         .timeout-indicator {
@@ -1759,6 +1766,15 @@
                 const awayColor = '#' + (away.team.color || 'ff006e');
                 updateComparison(data.boxscore.teams, homeColor, awayColor);
             }
+
+            // FIX #1: Update play-by-play during refresh
+            if (data.plays && data.plays.length > 0) {
+                renderPlayByPlay(data.plays, home, away, '#' + (home.team.color || '00d9ff'), '#' + (away.team.color || 'ff006e'));
+            }
+
+            // FIX #3: Update possession indicator
+            const situation = header.situation;
+            updatePossessionIndicator(situation, home.id, away.id, isLive);
         }
 
         // ENHANCEMENT: Point Ghost Animation Function
@@ -1780,6 +1796,46 @@
             
             // Clean up DOM after animation completes
             setTimeout(() => ghost.remove(), 1200);
+        }
+
+        // FIX #3: Update possession indicator in header
+        function updatePossessionIndicator(situation, homeId, awayId, isLive) {
+            if (!situation || !isLive) {
+                // Remove possession indicators if not live
+                document.querySelectorAll('.possession-ball').forEach(el => el.remove());
+                return;
+            }
+
+            const awayHasPossession = situation.possession === awayId;
+            const homeHasPossession = situation.possession === homeId;
+
+            // Update away team possession
+            const awaySection = document.querySelector('.team-section.away');
+            if (awaySection) {
+                const existingBall = awaySection.querySelector('.possession-ball');
+                if (awayHasPossession && !existingBall) {
+                    const ball = document.createElement('div');
+                    ball.className = 'possession-ball';
+                    ball.innerHTML = '🏀';
+                    awaySection.insertBefore(ball, awaySection.firstChild);
+                } else if (!awayHasPossession && existingBall) {
+                    existingBall.remove();
+                }
+            }
+
+            // Update home team possession
+            const homeSection = document.querySelector('.team-section.home');
+            if (homeSection) {
+                const existingBall = homeSection.querySelector('.possession-ball');
+                if (homeHasPossession && !existingBall) {
+                    const ball = document.createElement('div');
+                    ball.className = 'possession-ball';
+                    ball.innerHTML = '🏀';
+                    homeSection.insertBefore(ball, homeSection.firstChild);
+                } else if (!homeHasPossession && existingBall) {
+                    existingBall.remove();
+                }
+            }
         }
 
         // Update line scores in-place
@@ -2460,7 +2516,31 @@
                 const img = p.athlete.headshot?.href || '';
                 
                 // Reorder stats according to ESPN order
-                const orderedStats = statIndices.map(idx => p.stats[idx]);
+                const orderedStats = statIndices.map(idx => {
+                    const label = orderedLabels[statIndices.indexOf(idx)];
+                    const stat = p.stats[idx];
+                    
+                    // FIX #2: Calculate points if not provided or incorrect
+                    if (label === 'points') {
+                        // Find FG, 3PT, FT indices
+                        const fgIdx = rawLabels.indexOf('fieldGoalsMade-fieldGoalsAttempted');
+                        const threePtIdx = rawLabels.indexOf('threePointFieldGoalsMade-threePointFieldGoalsAttempted');
+                        const ftIdx = rawLabels.indexOf('freeThrowsMade-freeThrowsAttempted');
+                        
+                        // Parse made shots
+                        const fgMade = fgIdx !== -1 && p.stats[fgIdx] ? parseInt(String(p.stats[fgIdx]).split('-')[0]) || 0 : 0;
+                        const threePtMade = threePtIdx !== -1 && p.stats[threePtIdx] ? parseInt(String(p.stats[threePtIdx]).split('-')[0]) || 0 : 0;
+                        const ftMade = ftIdx !== -1 && p.stats[ftIdx] ? parseInt(String(p.stats[ftIdx]).split('-')[0]) || 0 : 0;
+                        
+                        // Calculate: (FG - 3PT) * 2 + 3PT * 3 + FT
+                        const twoPointers = fgMade - threePtMade;
+                        const calculatedPoints = (twoPointers * 2) + (threePtMade * 3) + ftMade;
+                        
+                        return calculatedPoints;
+                    }
+                    
+                    return stat;
+                });
                 
                 // Add to team totals
                 orderedStats.forEach((stat, i) => {
