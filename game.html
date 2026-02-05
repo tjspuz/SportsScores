@@ -710,8 +710,8 @@
         }
 
         .team-logo-large {
-            width: 100px;
-            height: 100px;
+            width: 125px;
+            height: 125px;
             object-fit: contain;
             filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
             transition: transform var(--transition-speed);
@@ -821,6 +821,48 @@
 
         .matchup-header.compact .matchup-betting-odds {
             display: none;
+        }
+
+        /* FIX #2: Increase line score font sizes */
+        .line-score {
+            margin-top: 24px;
+        }
+
+        .line-score table {
+            width: 100%;
+            font-size: 1.1rem; /* Increased from default */
+            border-collapse: collapse;
+        }
+
+        .line-score th {
+            padding: 10px 12px;
+            font-size: 1rem; /* Slightly larger headers */
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .line-score td {
+            padding: 10px 12px;
+            font-size: 1.1rem; /* Increased cell text */
+        }
+
+        .line-score .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.15rem; /* Even larger for team names */
+        }
+
+        .line-score .team-cell img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .line-score .total-score {
+            font-weight: 900;
+            font-size: 1.25rem; /* Largest for total scores */
+            font-family: 'Space Mono', monospace;
         }
 
         /* FEATURE: Possession Indicator */
@@ -2282,15 +2324,55 @@
                 const tbody = tableCard.querySelector('tbody');
                 if (!tbody) return;
 
-                const rows = tbody.querySelectorAll('tr');
+                const rawLabels = teamData.statistics[0].keys;
+                const rows = tbody.querySelectorAll('tr:not(.box-section-header)');
+                
                 teamData.statistics[0].athletes.forEach((player, playerIndex) => {
                     const row = rows[playerIndex];
                     if (!row) return;
 
+                    // FIX #4: Calculate points correctly to prevent API from overwriting
+                    const fgIdx = rawLabels.indexOf('fieldGoalsMade-fieldGoalsAttempted');
+                    const threePtIdx = rawLabels.indexOf('threePointFieldGoalsMade-threePointFieldGoalsAttempted');
+                    const ftIdx = rawLabels.indexOf('freeThrowsMade-freeThrowsAttempted');
+                    const ptsIdx = rawLabels.indexOf('points');
+                    
+                    // Parse made shots
+                    const fgMade = fgIdx !== -1 && player.stats[fgIdx] ? parseInt(String(player.stats[fgIdx]).split('-')[0]) || 0 : 0;
+                    const threePtMade = threePtIdx !== -1 && player.stats[threePtIdx] ? parseInt(String(player.stats[threePtIdx]).split('-')[0]) || 0 : 0;
+                    const ftMade = ftIdx !== -1 && player.stats[ftIdx] ? parseInt(String(player.stats[ftIdx]).split('-')[0]) || 0 : 0;
+                    
+                    // Calculate: (FG - 3PT) * 2 + 3PT * 3 + FT
+                    const twoPointers = fgMade - threePtMade;
+                    const calculatedPoints = (twoPointers * 2) + (threePtMade * 3) + ftMade;
+
+                    // ESPN-style stat order matches renderBoxScore
+                    const ESPN_ORDER = [
+                        'points', 'rebounds', 'assists', 
+                        'fieldGoalsMade-fieldGoalsAttempted', 
+                        'threePointFieldGoalsMade-threePointFieldGoalsAttempted', 
+                        'freeThrowsMade-freeThrowsAttempted',
+                        'personalFouls', 'minutes', 'steals', 'blocks', 'turnovers'
+                    ];
+                    
+                    const statIndices = ESPN_ORDER.map(espnKey => rawLabels.indexOf(espnKey)).filter(idx => idx !== -1);
+
                     const statCells = row.querySelectorAll('td:not(:first-child)');
-                    player.stats.slice(0, 5).forEach((stat, statIndex) => {
-                        if (statCells[statIndex] && statCells[statIndex].textContent !== stat) {
-                            statCells[statIndex].textContent = stat;
+                    statIndices.forEach((rawIdx, orderedIdx) => {
+                        if (!statCells[orderedIdx]) return;
+                        
+                        const label = rawLabels[rawIdx];
+                        let displayValue;
+                        
+                        // Use calculated points instead of API points
+                        if (label === 'points') {
+                            displayValue = calculatedPoints;
+                        } else {
+                            displayValue = player.stats[rawIdx];
+                        }
+                        
+                        if (statCells[orderedIdx].textContent !== String(displayValue)) {
+                            statCells[orderedIdx].textContent = displayValue || '-';
                         }
                     });
                 });
@@ -2476,7 +2558,7 @@
                             <div class="team-name-large" style="color: ${awayColor}">
                                 ${awayHasPossession && isLive ? `<span class="possession-indicator">${possessionIcon}</span>` : ''}
                                 ${awayRank ? `<span class="team-rank">#${awayRank}</span>` : ''}
-                                ${away.team.displayName || away.team.name}
+                                ${away.team.location || away.team.displayName || away.team.name}
                             </div>
                             ${awayRecord ? `<div class="team-record-large">${awayRecord}</div>` : ''}
                             ${awayTimeouts !== '' && isLive ? `<div class="timeout-indicator">⏱️ ${awayTimeouts} TO</div>` : ''}
@@ -2494,7 +2576,7 @@
                             <div class="team-name-large" style="color: ${homeColor}">
                                 ${homeHasPossession && isLive ? `<span class="possession-indicator">${possessionIcon}</span>` : ''}
                                 ${homeRank ? `<span class="team-rank">#${homeRank}</span>` : ''}
-                                ${home.team.displayName || home.team.name}
+                                ${home.team.location || home.team.displayName || home.team.name}
                             </div>
                             ${homeRecord ? `<div class="team-record-large">${homeRecord}</div>` : ''}
                             ${homeTimeouts !== '' && isLive ? `<div class="timeout-indicator">⏱️ ${homeTimeouts} TO</div>` : ''}
@@ -2915,7 +2997,13 @@
             let totalFTMade = 0, totalFTAttempted = 0;
 
             const renderPlayerRow = (p) => {
-                const name = p.athlete.displayName || 'Unknown';
+                const fullName = p.athlete.displayName || 'Unknown';
+                // FIX #3: Format name as "J.Smith" instead of "John Smith"
+                const nameParts = fullName.split(' ');
+                const formattedName = nameParts.length >= 2 
+                    ? `${nameParts[0].charAt(0)}.${nameParts[nameParts.length - 1]}`
+                    : fullName;
+                
                 const pos = p.athlete.position?.abbreviation || '';
                 const img = p.athlete.headshot?.href || '';
                 
@@ -2989,7 +3077,7 @@
                             <div class="player-cell">
                                 ${img ? `<img src="${img}" class="player-headshot" onerror="this.style.display='none'">` : ''}
                                 <div class="player-info">
-                                    <div class="player-name">${name}</div>
+                                    <div class="player-name">${formattedName}</div>
                                     <div class="player-position">${pos}</div>
                                 </div>
                             </div>
