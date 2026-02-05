@@ -2719,7 +2719,7 @@
                     </div>
                 `;
             }
-
+            
             // Extract betting odds - now merged from scoreboard
             const odds = header.odds?.[0];
             const spread = odds?.details || '';
@@ -2727,6 +2727,35 @@
             const awayMoneyLine = odds?.awayTeamOdds?.moneyLine;
             const homeMoneyLine = odds?.homeTeamOdds?.moneyLine;
             console.log('Odds:', { spread, overUnder, awayMoneyLine, homeMoneyLine });
+            
+            // Parse spread to determine favorite and calculate underdog spread
+            let awaySpread = '';
+            let homeSpread = '';
+            
+            if (spread) {
+                // ESPN format is like "UNC -8.5" or "-8.5"
+                // Extract just the number
+                const spreadMatch = spread.match(/([-+]?\d+\.?\d*)/);
+                if (spreadMatch) {
+                    const spreadValue = parseFloat(spreadMatch[1]);
+                    
+                    // Check if spread includes team name to determine who is favored
+                    const spreadIncludesAway = spread.includes(away.team.abbreviation);
+                    const spreadIncludesHome = spread.includes(home.team.abbreviation);
+                    
+                    if (spreadIncludesHome || (!spreadIncludesAway && spreadValue < 0)) {
+                        // Home is favored (negative spread)
+                        homeSpread = spreadValue < 0 ? spreadValue.toString() : `-${spreadValue}`;
+                        awaySpread = spreadValue < 0 ? `+${Math.abs(spreadValue)}` : `+${spreadValue}`;
+                    } else {
+                        // Away is favored (negative spread)
+                        awaySpread = spreadValue < 0 ? spreadValue.toString() : `-${spreadValue}`;
+                        homeSpread = spreadValue < 0 ? `+${Math.abs(spreadValue)}` : `+${spreadValue}`;
+                    }
+                }
+            }
+            
+            console.log('Calculated spreads:', { awaySpread, homeSpread });
             
             // Enhancement #2: Determine winner for final games
             const isFinished = header.status.type.completed;
@@ -2767,11 +2796,11 @@
                             </div>
                             
                             <!-- Betting odds - show spread, total, moneyline -->
-                            ${(spread || overUnder || awayMoneyLine || homeMoneyLine) ? `
+                            ${(awaySpread || overUnder || awayMoneyLine || homeMoneyLine) ? `
                                 <div class="betting-line">
-                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${spread}</span>` : ''}
+                                    ${awaySpread ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${awaySpread}</span>` : ''}
                                     ${overUnder ? `<span class="odds-text">TOTAL ${overUnder}</span>` : ''}
-                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> ${spread.startsWith('-') ? spread : '-' + spread.replace('+', '')}</span>` : ''}
+                                    ${homeSpread ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> ${homeSpread}</span>` : ''}
                                     ${(awayMoneyLine && homeMoneyLine) ? `<span class="odds-text" style="font-size: 0.85rem;">ML: ${awayMoneyLine > 0 ? '+' : ''}${awayMoneyLine} / ${homeMoneyLine > 0 ? '+' : ''}${homeMoneyLine}</span>` : ''}
                                 </div>
                             ` : ''}
