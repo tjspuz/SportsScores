@@ -2219,7 +2219,14 @@
                 
                 console.log('Parsing JSON...');
                 gameData = await response.json();
-                console.log('Game data received successfully. Keys:', Object.keys(gameData));
+                console.log('=== FULL GAME DATA STRUCTURE ===');
+                console.log('Game data keys:', Object.keys(gameData));
+                console.log('Header structure:', gameData.header);
+                if (gameData.header && gameData.header.competitions) {
+                    console.log('Competition data:', gameData.header.competitions[0]);
+                    console.log('Competitors:', gameData.header.competitions[0].competitors);
+                }
+                console.log('=================================');
                 
                 renderPage(gameData, isInitialRender);
                 if (isInitialRender) {
@@ -2596,12 +2603,23 @@
             const awayRank = away.curatedRank?.current <= 25 ? away.curatedRank.current : null;
             const homeRank = home.curatedRank?.current <= 25 ? home.curatedRank.current : null;
 
-            // Get records - DEBUG
-            console.log('Away records data:', away.records);
-            console.log('Home records data:', home.records);
-            const awayRecord = away.records?.[0]?.summary || away.record?.displayValue || '';
-            const homeRecord = home.records?.[0]?.summary || home.record?.displayValue || '';
+            // Get records - DEBUG - try multiple paths
+            console.log('=== LOOKING FOR RECORDS ===');
+            console.log('Away object keys:', Object.keys(away));
+            console.log('Away records:', away.records);
+            console.log('Away record:', away.record);
+            console.log('Home object keys:', Object.keys(home));
+            console.log('Home records:', home.records);
+            console.log('Home record:', home.record);
+            
+            // Check if records exist in the header.season or other locations
+            console.log('Header keys:', Object.keys(header));
+            console.log('Full header for debugging:', header);
+            
+            const awayRecord = away.records?.[0]?.summary || away.record?.displayValue || away.recordSummary || '';
+            const homeRecord = home.records?.[0]?.summary || home.record?.displayValue || home.recordSummary || '';
             console.log('Extracted records:', { awayRecord, homeRecord });
+            console.log('=========================');
 
             // Get venue information
             const venue = header.venue?.fullName || '';
@@ -2683,15 +2701,23 @@
             }
 
             // Fix #6: Extract betting odds - show spread, total, and moneyline
-            console.log('Odds data:', header.odds);
+            console.log('=== LOOKING FOR ODDS ===');
+            console.log('Header odds:', header.odds);
+            console.log('Header keys (full):', Object.keys(header));
             const competitionOdds = header.odds?.[0];
             console.log('Competition odds object:', competitionOdds);
             
             // Also check for odds on the competitors themselves
             const awayOdds = away.odds?.[0];
             const homeOdds = home.odds?.[0];
+            console.log('Away competitor keys:', Object.keys(away));
             console.log('Away odds:', awayOdds);
+            console.log('Home competitor keys:', Object.keys(home));
             console.log('Home odds:', homeOdds);
+            
+            // Check if there's a pickcenter or betting info
+            console.log('Pickcenter:', header.pickcenter);
+            console.log('Broadcasts:', header.broadcasts);
             
             // Try multiple paths for odds data
             const spread = competitionOdds?.details || competitionOdds?.spread || '';
@@ -2706,6 +2732,7 @@
             const homeMoneyLine = competitionOdds?.homeTeamOdds?.moneyLine || homeOdds?.moneyLine;
             
             console.log('Extracted odds:', { spread, overUnder, awaySpreadValue, homeSpreadValue, awayMoneyLine, homeMoneyLine });
+            console.log('=======================');
             
             // Enhancement #2: Determine winner for final games
             const isFinished = header.status.type.completed;
