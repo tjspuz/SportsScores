@@ -2221,11 +2221,44 @@
                 gameData = await response.json();
                 console.log('=== FULL GAME DATA STRUCTURE ===');
                 console.log('Game data keys:', Object.keys(gameData));
-                console.log('Header structure:', gameData.header);
-                if (gameData.header && gameData.header.competitions) {
-                    console.log('Competition data:', gameData.header.competitions[0]);
-                    console.log('Competitors:', gameData.header.competitions[0].competitors);
+                
+                // SOLUTION: Fetch scoreboard data to get records and odds
+                console.log('Fetching scoreboard data for records and odds...');
+                const scoreboardURL = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/scoreboard`;
+                try {
+                    const scoreboardResponse = await fetch(scoreboardURL);
+                    const scoreboardData = await scoreboardResponse.json();
+                    
+                    // Find our game in the scoreboard
+                    const ourEvent = scoreboardData.events?.find(e => e.id === gameId);
+                    if (ourEvent && ourEvent.competitions && ourEvent.competitions[0]) {
+                        console.log('Found game in scoreboard! Merging records and odds...');
+                        const scoreboardCompetition = ourEvent.competitions[0];
+                        
+                        // Merge records and odds into our game data
+                        if (gameData.header && gameData.header.competitions && gameData.header.competitions[0]) {
+                            const competition = gameData.header.competitions[0];
+                            
+                            // Merge odds
+                            if (scoreboardCompetition.odds && !competition.odds) {
+                                competition.odds = scoreboardCompetition.odds;
+                                console.log('Merged odds:', competition.odds);
+                            }
+                            
+                            // Merge competitor records
+                            scoreboardCompetition.competitors.forEach(scoreboardTeam => {
+                                const gameTeam = competition.competitors.find(t => t.id === scoreboardTeam.id);
+                                if (gameTeam && scoreboardTeam.records) {
+                                    gameTeam.records = scoreboardTeam.records;
+                                    console.log(`Merged records for ${scoreboardTeam.team.abbreviation}:`, gameTeam.records);
+                                }
+                            });
+                        }
+                    }
+                } catch (scoreboardError) {
+                    console.warn('Could not fetch scoreboard data:', scoreboardError);
                 }
+                
                 console.log('=================================');
                 
                 renderPage(gameData, isInitialRender);
@@ -2603,23 +2636,10 @@
             const awayRank = away.curatedRank?.current <= 25 ? away.curatedRank.current : null;
             const homeRank = home.curatedRank?.current <= 25 ? home.curatedRank.current : null;
 
-            // Get records - DEBUG - try multiple paths
-            console.log('=== LOOKING FOR RECORDS ===');
-            console.log('Away object keys:', Object.keys(away));
-            console.log('Away records:', away.records);
-            console.log('Away record:', away.record);
-            console.log('Home object keys:', Object.keys(home));
-            console.log('Home records:', home.records);
-            console.log('Home record:', home.record);
-            
-            // Check if records exist in the header.season or other locations
-            console.log('Header keys:', Object.keys(header));
-            console.log('Full header for debugging:', header);
-            
-            const awayRecord = away.records?.[0]?.summary || away.record?.displayValue || away.recordSummary || '';
-            const homeRecord = home.records?.[0]?.summary || home.record?.displayValue || home.recordSummary || '';
-            console.log('Extracted records:', { awayRecord, homeRecord });
-            console.log('=========================');
+            // Get records - now merged from scoreboard
+            const awayRecord = away.records?.[0]?.summary || '';
+            const homeRecord = home.records?.[0]?.summary || '';
+            console.log('Records:', { awayRecord, homeRecord });
 
             // Get venue information
             const venue = header.venue?.fullName || '';
@@ -2700,39 +2720,13 @@
                 `;
             }
 
-            // Fix #6: Extract betting odds - show spread, total, and moneyline
-            console.log('=== LOOKING FOR ODDS ===');
-            console.log('Header odds:', header.odds);
-            console.log('Header keys (full):', Object.keys(header));
-            const competitionOdds = header.odds?.[0];
-            console.log('Competition odds object:', competitionOdds);
-            
-            // Also check for odds on the competitors themselves
-            const awayOdds = away.odds?.[0];
-            const homeOdds = home.odds?.[0];
-            console.log('Away competitor keys:', Object.keys(away));
-            console.log('Away odds:', awayOdds);
-            console.log('Home competitor keys:', Object.keys(home));
-            console.log('Home odds:', homeOdds);
-            
-            // Check if there's a pickcenter or betting info
-            console.log('Pickcenter:', header.pickcenter);
-            console.log('Broadcasts:', header.broadcasts);
-            
-            // Try multiple paths for odds data
-            const spread = competitionOdds?.details || competitionOdds?.spread || '';
-            const overUnder = competitionOdds?.overUnder || '';
-            
-            // Get spread values from team odds if available
-            const awaySpreadValue = awayOdds?.spread || away.odds?.[0]?.value || '';
-            const homeSpreadValue = homeOdds?.spread || home.odds?.[0]?.value || '';
-            
-            // Get moneyline
-            const awayMoneyLine = competitionOdds?.awayTeamOdds?.moneyLine || awayOdds?.moneyLine;
-            const homeMoneyLine = competitionOdds?.homeTeamOdds?.moneyLine || homeOdds?.moneyLine;
-            
-            console.log('Extracted odds:', { spread, overUnder, awaySpreadValue, homeSpreadValue, awayMoneyLine, homeMoneyLine });
-            console.log('=======================');
+            // Extract betting odds - now merged from scoreboard
+            const odds = header.odds?.[0];
+            const spread = odds?.details || '';
+            const overUnder = odds?.overUnder || '';
+            const awayMoneyLine = odds?.awayTeamOdds?.moneyLine;
+            const homeMoneyLine = odds?.homeTeamOdds?.moneyLine;
+            console.log('Odds:', { spread, overUnder, awayMoneyLine, homeMoneyLine });
             
             // Enhancement #2: Determine winner for final games
             const isFinished = header.status.type.completed;
@@ -2772,12 +2766,12 @@
                                 </div>
                             </div>
                             
-                            <!-- Fix #6: Betting odds persist after game ends - show spread, total, moneyline -->
-                            ${(spread || overUnder || awaySpreadValue || homeSpreadValue || awayMoneyLine || homeMoneyLine) ? `
+                            <!-- Betting odds - show spread, total, moneyline -->
+                            ${(spread || overUnder || awayMoneyLine || homeMoneyLine) ? `
                                 <div class="betting-line">
-                                    ${(spread || awaySpreadValue) ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${awaySpreadValue || spread}</span>` : ''}
+                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${away.team.abbreviation}</span> ${spread}</span>` : ''}
                                     ${overUnder ? `<span class="odds-text">TOTAL ${overUnder}</span>` : ''}
-                                    ${(spread || homeSpreadValue) ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> ${homeSpreadValue || '-' + spread.replace('+', '')}</span>` : ''}
+                                    ${spread ? `<span class="odds-text"><span class="odds-abbr">${home.team.abbreviation}</span> ${spread.startsWith('-') ? spread : '-' + spread.replace('+', '')}</span>` : ''}
                                     ${(awayMoneyLine && homeMoneyLine) ? `<span class="odds-text" style="font-size: 0.85rem;">ML: ${awayMoneyLine > 0 ? '+' : ''}${awayMoneyLine} / ${homeMoneyLine > 0 ? '+' : ''}${homeMoneyLine}</span>` : ''}
                                 </div>
                             ` : ''}
