@@ -1108,6 +1108,27 @@
             font-size: 1.2rem;
         }
 
+        /* TV MODE: MAXIMIZE WIDTH - Fill entire screen */
+        [data-display-size="tv"] .container {
+            max-width: 100%; /* Remove width restriction */
+            padding: 32px 48px; /* Good padding without waste */
+        }
+
+        /* TV MODE: Bigger match cards */
+        [data-display-size="tv"] .match-card {
+            padding: 40px; /* Was 36px - even more spacious */
+        }
+
+        /* TV MODE: Better grid utilization */
+        [data-display-size="tv"] #scoreboard {
+            gap: 28px; /* Bigger gaps between cards */
+        }
+
+        /* TV MODE: Adjust grid columns for wider screen */
+        [data-display-size="tv"] #scoreboard {
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); /* Wider minimum */
+        }
+
         /* LARGE MODE - Moderate scaling */
         [data-display-size="large"] {
             font-size: 18px;

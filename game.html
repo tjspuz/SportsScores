@@ -481,6 +481,45 @@
             font-size: 1.4rem;
         }
 
+        /* TV MODE: MAXIMIZE WIDTH - Fill the entire screen */
+        [data-display-size="tv"] .container {
+            max-width: 100%; /* Remove width restriction */
+            padding: 32px 48px; /* Generous but not wasteful padding */
+        }
+
+        /* TV MODE: Wider widgets for better screen utilization */
+        [data-display-size="tv"] .widgets-grid {
+            gap: 32px; /* Bigger gaps between widgets */
+        }
+
+        /* TV MODE: Make widgets use available space better */
+        [data-display-size="tv"] .widget.width-half {
+            grid-column: span 6; /* Still half, but half of full width */
+        }
+
+        [data-display-size="tv"] .widget.width-full {
+            grid-column: span 12; /* Full width across screen */
+        }
+
+        /* TV MODE: Wider matchup header */
+        [data-display-size="tv"] .matchup-header {
+            padding: 48px 64px; /* More horizontal padding */
+        }
+
+        /* TV MODE: Better table width utilization */
+        [data-display-size="tv"] .table-wrapper {
+            overflow-x: visible; /* Allow full width */
+        }
+
+        [data-display-size="tv"] table {
+            width: 100%; /* Use all available space */
+        }
+
+        /* TV MODE: Spread out team sections */
+        [data-display-size="tv"] .teams-display {
+            gap: 64px; /* More space between teams */
+        }
+
         /* LARGE MODE - Moderate scaling */
         [data-display-size="large"] {
             font-size: 19px;
