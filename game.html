@@ -588,20 +588,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Enhancement #2: Corner records */
-        .corner-records {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            display: flex;
-            justify-content: space-between;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
         /* Enhancement #2: Main matchup layout */
         .matchup-main {
             display: grid;
@@ -2765,12 +2751,6 @@
             let html = `
                 <div class="matchup-header">
                     <button class="header-toggle-btn" onclick="toggleHeader()">▲</button>
-                    
-                    <!-- Records at top corners -->
-                    <div class="corner-records">
-                        <div class="record-corner record-away">${awayRecord || ''}</div>
-                        <div class="record-corner record-home">${homeRecord || ''}</div>
-                    </div>
                     
                     <!-- Main content area -->
                     <div class="matchup-main">
