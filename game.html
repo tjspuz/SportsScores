@@ -2342,36 +2342,39 @@
             const awayScore = isPre ? '-' : (away.score || '0');
             const isLive = header.status.type.state === 'in';
 
-            // ENHANCEMENT: Point Ghost Animation - Update scores in header with animation
-            const scoreElements = document.querySelectorAll('.scores span');
-            if (scoreElements.length >= 3) {
-                // AWAY TEAM CHECK
-                const oldAway = parseInt(scoreElements[0].textContent) || 0;
+            // Update scores in the new matchup header structure
+            const scoreLargeElements = document.querySelectorAll('.score-large');
+            if (scoreLargeElements.length >= 2) {
+                // AWAY TEAM CHECK (first score-large)
+                const oldAway = parseInt(scoreLargeElements[0].textContent) || 0;
                 const newAway = parseInt(awayScore) || 0;
                 if (newAway > oldAway && !isPre) {
                     const awayColor = '#' + (away.team.color || 'ff006e');
-                    triggerScorePop(scoreElements[0], newAway - oldAway, awayColor);
+                    triggerScorePop(scoreLargeElements[0], newAway - oldAway, awayColor);
                 }
-                if (scoreElements[0].textContent !== awayScore) {
-                    scoreElements[0].textContent = awayScore;
+                if (scoreLargeElements[0].textContent !== awayScore) {
+                    scoreLargeElements[0].textContent = awayScore;
                 }
                 
-                // HOME TEAM CHECK
-                const oldHome = parseInt(scoreElements[2].textContent) || 0;
+                // HOME TEAM CHECK (second score-large)
+                const oldHome = parseInt(scoreLargeElements[1].textContent) || 0;
                 const newHome = parseInt(homeScore) || 0;
                 if (newHome > oldHome && !isPre) {
                     const homeColor = '#' + (home.team.color || '00d9ff');
-                    triggerScorePop(scoreElements[2], newHome - oldHome, homeColor);
+                    triggerScorePop(scoreLargeElements[1], newHome - oldHome, homeColor);
                 }
-                if (scoreElements[2].textContent !== homeScore) {
-                    scoreElements[2].textContent = homeScore;
+                if (scoreLargeElements[1].textContent !== homeScore) {
+                    scoreLargeElements[1].textContent = homeScore;
                 }
             }
 
-            // Update status
-            const statusEl = document.querySelector('.game-status');
-            if (statusEl && statusEl.textContent !== header.status.type.detail) {
-                statusEl.textContent = header.status.type.detail;
+            // Update status (using game-status-large)
+            const statusEl = document.querySelector('.game-status-large');
+            if (statusEl) {
+                const statusText = header.status.type.completed ? 'Final' : header.status.type.detail;
+                if (statusEl.textContent !== statusText) {
+                    statusEl.textContent = statusText;
+                }
                 if (isLive) {
                     statusEl.classList.add('live');
                 } else {
@@ -2411,6 +2414,8 @@
             // FIX #3: Update possession indicator
             const situation = header.situation;
             updatePossessionIndicator(situation, home.id, away.id, isLive);
+            
+            console.log('✅ Updated scores and stats', { awayScore, homeScore, statusText: header.status.type.detail });
         }
 
         // ENHANCEMENT: Point Ghost Animation Function
@@ -3691,6 +3696,7 @@
 
         // FIX #1: Auto-refresh for ALL games every 10 seconds
         setInterval(() => {
+            console.log('🔄 Auto-refresh triggered at', new Date().toLocaleTimeString());
             fetchGameData();
         }, 10000);
 
