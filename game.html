@@ -316,31 +316,23 @@
             font-size: 28px; /* Base font size increase - was 22px, now 28px */
         }
 
-        /* TV: Matchup Header */
+        /* Fix #1: TV mode - New matchup header structure */
         [data-display-size="tv"] .team-logo-large {
-            width: 140px;
-            height: 140px;
+            width: 200px; /* Increased from 140px */
+            height: 200px;
         }
 
-        [data-display-size="tv"] .team-name-large {
-            font-size: 3.5rem;
-        }
-
-        [data-display-size="tv"] .team-record-large {
+        [data-display-size="tv"] .team-record-display {
             font-size: 1.8rem;
         }
 
-        [data-display-size="tv"] .scores {
-            font-size: 6.5rem;
+        [data-display-size="tv"] .score-large {
+            font-size: 8rem; /* Much larger scores for TV viewing */
         }
 
-        [data-display-size="tv"] .game-status {
-            font-size: 2rem;
+        [data-display-size="tv"] .game-status-large {
+            font-size: 2.5rem; /* Increased for TV visibility */
             padding: 16px 32px;
-        }
-
-        [data-display-size="tv"] .team-rank {
-            font-size: 2.2rem;
         }
 
         /* TV: Line Score Table */
@@ -348,6 +340,10 @@
         [data-display-size="tv"] .line-score td {
             padding: 24px;
             font-size: 1.8rem;
+        }
+        
+        [data-display-size="tv"] .total-score {
+            font-size: 2.2rem !important; /* Increased total score font */
         }
 
         /* TV: Widget Headers - MUCH BIGGER */
@@ -400,6 +396,18 @@
             font-size: 2rem; /* Even bigger for totals */
             font-weight: 900;
             padding: 28px 20px;
+        }
+
+        /* Fix #2: TV mode - Team Comparison table (match player stats sizes) */
+        [data-display-size="tv"] .comparison-table thead th {
+            padding: 24px 20px;
+            font-size: 1.5rem; /* Match player stats header size */
+        }
+
+        [data-display-size="tv"] .comparison-table tbody td {
+            padding: 24px 20px;
+            font-size: 1.8rem; /* Match player stats cell size */
+            font-weight: 700;
         }
 
         /* TV: Team Comparison Stats */
@@ -1075,6 +1083,32 @@
             max-height: 500px;
             overflow-y: auto;
             padding: 8px;
+        }
+
+        /* Fix #3: Height variants for play-by-play */
+        .widget[data-widget="playbyplay"].height-normal .play-feed {
+            max-height: 500px;
+        }
+
+        .widget[data-widget="playbyplay"].height-tall .play-feed {
+            max-height: 800px;
+        }
+
+        .widget[data-widget="playbyplay"].height-extra-tall .play-feed {
+            max-height: 1200px;
+        }
+
+        /* Fix #3: TV mode - double the play-by-play height */
+        [data-display-size="tv"] .play-feed {
+            max-height: 1000px; /* Doubled from 500px */
+        }
+
+        [data-display-size="tv"] .widget[data-widget="playbyplay"].height-tall .play-feed {
+            max-height: 1600px;
+        }
+
+        [data-display-size="tv"] .widget[data-widget="playbyplay"].height-extra-tall .play-feed {
+            max-height: 2400px;
         }
 
         .play-item {
@@ -2145,6 +2179,27 @@
             }
         };
 
+        // Fix #3: Height resize function for play-by-play widget
+        window.resizeHeightWidget = function(btn, height) {
+            const widget = btn.closest('.widget');
+            const resizeBtns = btn.parentElement.querySelectorAll('.resize-btn');
+            
+            if (widget) {
+                // Remove all height classes
+                widget.classList.remove('height-normal', 'height-tall', 'height-extra-tall');
+                
+                // Add new height class
+                widget.classList.add(`height-${height}`);
+                
+                // Update button states
+                resizeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Save layout
+                saveLayout();
+            }
+        };
+
         // NEW: Box Score Toggle (Compact Mode)
         window.toggleBoxScore = function(btn) {
             const tableCard = btn.closest('.table-card');
@@ -2871,13 +2926,18 @@
                     </div>
 
                     <!-- NEW: Play-by-Play Widget -->
-                    <div class="widget width-half" data-widget="playbyplay">
+                    <div class="widget width-half height-normal" data-widget="playbyplay">
                         <div class="widget-header">
                             <h3 class="widget-title">Play-by-Play</h3>
                             <div class="widget-controls">
                                 <div class="resize-btns">
                                     <span class="resize-btn" onclick="resizeWidget(this, 'full')" title="Full Width">▭</span>
                                     <span class="resize-btn active" onclick="resizeWidget(this, 'half')" title="Half Width">▯</span>
+                                </div>
+                                <div class="resize-btns" style="margin-left: 8px;">
+                                    <span class="resize-btn active" onclick="resizeHeightWidget(this, 'normal')" title="Normal Height">━</span>
+                                    <span class="resize-btn" onclick="resizeHeightWidget(this, 'tall')" title="Tall">▬</span>
+                                    <span class="resize-btn" onclick="resizeHeightWidget(this, 'extra-tall')" title="Extra Tall">▭</span>
                                 </div>
                                 <span class="min-btn" onclick="toggleWidget(this)">−</span>
                                 <span class="drag-handle">⋮⋮</span>
@@ -3694,11 +3754,11 @@
             }
         });
 
-        // FIX #1: Auto-refresh for ALL games every 10 seconds
+        // Auto-refresh every 3 seconds for real-time updates
         setInterval(() => {
             console.log('🔄 Auto-refresh triggered at', new Date().toLocaleTimeString());
             fetchGameData();
-        }, 2000);
+        }, 3000); // 3 seconds = more real-time
 
         // Add test button for debugging
         window.testAPI = async function() {
