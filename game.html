@@ -689,7 +689,7 @@
             background: var(--bg-primary);
             border-radius: 20px;
             border: 2px solid var(--border-color);
-            line-height: 1.5;
+            line-height: 1.3;
             text-align: center;
             min-width: 110px;
         }
@@ -700,17 +700,18 @@
             animation: pulse-border 2s infinite;
         }
 
-        /* Modern clock display format */
-        .game-status-large .period {
-            font-size: 0.9rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
+        /* Modern clock display format - TIME FIRST (large), then period */
+        .game-status-large .time {
+            font-size: 1.6rem;
+            font-weight: 800;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.05em;
         }
 
-        .game-status-large .time {
-            font-size: 1.2rem;
-            font-weight: 700;
-            font-family: 'Space Mono', monospace;
+        .game-status-large .period {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
             margin-top: 2px;
         }
 
@@ -2455,7 +2456,7 @@
                     if (match) {
                         const time = match[1];
                         const period = match[2].replace(/half/i, 'HALF').replace(/quarter/i, 'Q');
-                        const newHtml = `<span class="period">${period}</span><span class="time">${time}</span>`;
+                        const newHtml = `<span class="time">${time}</span><span class="period">${period}</span>`;
                         if (statusEl.innerHTML !== newHtml) {
                             statusEl.innerHTML = newHtml;
                         }
@@ -2671,34 +2672,8 @@
 
         // Update comparison stats
         function updateComparison(teams, homeColor, awayColor) {
-            const container = document.getElementById('comparison-stats');
-            if (!container) return;
-
-            const statRows = container.querySelectorAll('.stat-row');
-            const keys = ['fieldGoalPct', 'threePointFieldGoalPct', 'freeThrowPct', 'reboundsTotal', 'turnovers'];
-
-            keys.forEach((key, index) => {
-                if (index >= statRows.length) return;
-                
-                const statRow = statRows[index];
-                const homeTeam = teams.find(t => t.homeAway === 'home');
-                const awayTeam = teams.find(t => t.homeAway === 'away');
-                
-                const homeStat = homeTeam.statistics.find(s => s.name === key);
-                const awayStat = awayTeam.statistics.find(s => s.name === key);
-                
-                if (homeStat && awayStat) {
-                    const values = statRow.querySelectorAll('.stat-values span');
-                    if (values.length >= 2) {
-                        if (values[0].textContent !== awayStat.displayValue) {
-                            values[0].textContent = awayStat.displayValue;
-                        }
-                        if (values[1].textContent !== homeStat.displayValue) {
-                            values[1].textContent = homeStat.displayValue;
-                        }
-                    }
-                }
-            });
+            // Simply re-render the entire comparison widget since it's small
+            renderComparison(teams, homeColor, awayColor);
         }
 
         // Initial page render
@@ -2850,7 +2825,7 @@
                 if (match) {
                     const time = match[1];
                     const period = match[2].replace(/half/i, 'HALF').replace(/quarter/i, 'Q');
-                    statusHtml = `<span class="period">${period}</span><span class="time">${time}</span>`;
+                    statusHtml = `<span class="time">${time}</span><span class="period">${period}</span>`;
                 } else {
                     statusHtml = statusDisplay;
                 }
