@@ -3330,9 +3330,9 @@
 
             // Fix #2: Updated stats list - FG%, 3PT%, FT%, REB, AST, STL, BLK, TO, PF
             const statsToShow = [
-                { key: 'FG%', label: 'Field Goal %', includeRatio: true },
+                { key: 'FG%', label: 'Field Goal', includeRatio: true },
                 { key: '3PT%', label: '3-Point %', includeRatio: false },
-                { key: 'FT%', label: 'Free Throw %', includeRatio: true },
+                { key: 'FT%', label: 'Free Throw', includeRatio: true },
                 { key: 'REB', label: 'Rebounds', includeRatio: false },
                 { key: 'AST', label: 'Assists', includeRatio: false },
                 { key: 'STL', label: 'Steals', includeRatio: false },
@@ -3377,10 +3377,10 @@
                             const homeRatio = findStat(homeStats, ratioKey);
                             
                             if (awayRatio) {
-                                awayDisplay += ` (${awayRatio.displayValue})`;
+                                awayDisplay = `${awayDisplay}%<br>(${awayRatio.displayValue})`;
                             }
                             if (homeRatio) {
-                                homeDisplay += ` (${homeRatio.displayValue})`;
+                                homeDisplay = `${homeDisplay}%<br>(${homeRatio.displayValue})`;
                             }
                         }
                     }
@@ -3388,8 +3388,8 @@
                     html += `
                         <tr>
                             <td style="font-weight: 600;">${stat.label}</td>
-                            <td style="text-align: center; color: ${awayColor}; font-family: 'Space Mono', monospace; font-weight: 700;">${awayDisplay}</td>
-                            <td style="text-align: center; color: ${homeColor}; font-family: 'Space Mono', monospace; font-weight: 700;">${homeDisplay}</td>
+                            <td style="text-align: center; color: ${awayColor}; font-family: 'Space Mono', monospace; font-weight: 700; line-height: 1.4;">${awayDisplay}</td>
+                            <td style="text-align: center; color: ${homeColor}; font-family: 'Space Mono', monospace; font-weight: 700; line-height: 1.4;">${homeDisplay}</td>
                         </tr>
                     `;
                 }
